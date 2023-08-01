@@ -470,35 +470,86 @@ Linters and formatters are a powerful way to improve the quality and consistency
 
 #### Creating confusion with octal literals (#17)
 
-When reading existing code, bear in mind that integer literals starting with 0 are octal numbers. Also, to improve readability, make octal integers explicit by prefixing them with `0o`.
+tldr When reading existing code, bear in mind that integer literals starting with 0 are octal numbers. Also, to improve readability, make octal integers explicit by prefixing them with `0o`.
+
+Octal numbers start with a 0 (e.g., `010` is equal to 8 in base 10). To improve readability and avoid potential mistakes for future code readers, we should make octal numbers explicit using the `0o` prefix (e.g., `0o10`).
+
+We should also note the other integer literal representations:
+* _Binary_—Uses a `0b` or `0B` prefix (for example, `0b100` is equal to 4 in base 10)
+* _Hexadecimal_—Uses an `0x` or `0X` prefix (for example, `0xF` is equal to 15 in base 10) 
+* _Imaginary_—Uses an `i` suffix (for example, `3i`)
+
+We can also use an underscore character (_) as a separator for readability. For example, we can write 1 billion this way: `1_000_000_000`. We can also use the under- score character with other representations (for example, `0b00_00_01`).
 
 #### Neglecting integer overflows (#18)
 
-Because integer overflows and underflows are handled silently in Go, you can implement your own functions to catch them.
+tldr Because integer overflows and underflows are handled silently in Go, you can implement your own functions to catch them.
+
+In Go, an integer overflow that can be detected at compile time generates a compila- tion error. For example,
+
+```cgo
+var counter int32 = math.MaxInt32 + 1
+```
+
+```shell
+constant 2147483648 overflows int32
+```
+
+However, at run time, an integer overflow or underflow is silent; this does not lead to an application panic. It is essential to keep this behavior in mind, because it can lead to sneaky bugs (for example, an integer increment or addition of positive integers that leads to a negative result).
 
 #### Not understanding floating-points (#19)
 
-Making floating-point comparisons within a given delta can ensure that your code is portable.
+tldr Making floating-point comparisons within a given delta can ensure that your code is portable. When performing addition or subtraction, group the operations with a similar order of magnitude to favor accuracy. Also, perform multiplication and division before addition and subtraction.
 
-When performing addition or subtraction, group the operations with a similar order of magnitude to favor accuracy. Also, perform multiplication and division before addition and subtraction.
+In Go, there are two floating-point types (if we omit imaginary numbers): float32 and float64. The concept of a floating point was invented to solve the major problem with integers: their inability to represent fractional values. To avoid bad surprises, we need to know that floating-point arithmetic is an approximation of real arithmetic.
 
-#### [Not understanding slice length and capacity](https://teivah.medium.com/slice-length-vs-capacity-in-go-af71a754b7d8) (#20)
+For that, we’ll look at a multiplication example:
 
-Understanding the difference between slice length and capacity should be part of a Go developer’s core knowledge. The slice length is the number of available elements in the slice, whereas the slice capacity is the number of elements in the backing array.
+```go
+var n float32 = 1.0001
+fmt.Println(n * n)
+```
+
+We may expect this code to print the result of 1.0001 * 1.0001 = 1.00020001, right? However, running it on most x86 processors prints 1.0002, instead.
+
+Because Go’s `float32` and `float64` types are approximations, we have to bear a few rules in mind:
+* When comparing two floating-point numbers, check that their difference is within an acceptable range.
+* When performing additions or subtractions, group operations with a similar order of magnitude for better accuracy.
+* To favor accuracy, if a sequence of operations requires addition, subtraction, multiplication, or division, perform the multiplication and division operations first.
+
+#### Not understanding slice length and capacity (#20)
+
+tldr Understanding the difference between slice length and capacity should be part of a Go developer’s core knowledge. The slice length is the number of available elements in the slice, whereas the slice capacity is the number of elements in the backing array.
+
+TODO
 
 #### Inefficient slice initialization (#21)
 
-When creating a slice, initialize it with a given length or capacity if its length is already known. This reduces the number of allocations and improves performance. The same logic goes for maps, and you need to initialize their size.
+tldr When creating a slice, initialize it with a given length or capacity if its length is already known. This reduces the number of allocations and improves performance. The same logic goes for maps, and you need to initialize their size.
+
+While initializing a slice using `make`, we can provide a length and an optional capacity. Forgetting to pass an appropriate value for both of these parameters when it makes sense is a widespread mistake. Indeed, it can lead to multiple copies and additional effort for the GC to clean the temporary backing arrays. Performance-wise, there’s no good reason not to give the Go runtime a helping hand.
+
+Our options are to allocate a slice with either a given capacity or a given length. Of these two solutions, we have seen that the second tends to be slightly faster. But using a given capacity and append can be easier to implement and read in some contexts.
 
 #### Being confused about nil vs. empty slice (#22)
 
-To prevent common confusions such as when using the `encoding/json` or the `reflect` package, you need to understand the difference between nil and empty slices. Both are zero-length, zero-capacity slices, but only a nil slice doesn’t require allocation.
+tldr To prevent common confusions such as when using the `encoding/json` or the `reflect` package, you need to understand the difference between nil and empty slices. Both are zero-length, zero-capacity slices, but only a nil slice doesn’t require allocation.
+
+In Go, there is a distinction between nil and empty slices. A nil slice is equals to `nil`, whereas an empty slice has a length of zero. A nil slice is empty, but an empty slice isn’t necessarily `nil`. Meanwhile, a nil slice doesn’t require any allocation. We have seen throughout this section how to initialize a slice depending on the con- text by using
+
+* `var s []string` if we aren’t sure about the final length and the slice can be empty
+* `[]string(nil)` as syntactic sugar to create a nil and empty slice 
+* `make([]string, length)` if the future length is known
+ 
+The last option, `[]string{}`, should be avoided if we initialize the slice without ele- ments. Finally, let’s check whether the libraries we use make the distinctions between nil and empty slices to prevent unexpected behaviors.
 
 #### Not properly checking if a slice is empty (#23)
 
-To check if a slice doesn’t contain any element, check its length. This check works regardless of whether the slice is `nil` or empty. The same goes for maps.
+tldr To check if a slice doesn’t contain any element, check its length. This check works regardless of whether the slice is `nil` or empty. The same goes for maps. To design unambiguous APIs, you shouldn’t distinguish between nil and empty slices.
 
-To design unambiguous APIs, you shouldn’t distinguish between nil and empty slices.
+To determine whether a slice has elements, we can either do it by checking if the slice is nil or if its length is equal to 0. Checking the length is the best option to follow as it will cover both if the slice is empty or is the slice is nil.
+
+Meanwhile, when designing interfaces, we should avoid distinguishing nil and empty slices, which leads to subtle programming errors. When returning slices, it should make neither a seman- tic nor a technical difference if we return a nil or empty slice. Both should mean the same thing for the callers. This principle is the same with maps. To check if a map is empty, check its length, not whether it’s nil.
 
 #### Not making slice copies correctly (#24)
 

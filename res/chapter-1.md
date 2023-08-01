@@ -1,4 +1,4 @@
-# Go: Simple to Learn but Hard to Master
+# Go: Simple to learn but hard to master
 
 This chapter covers
 * What makes Go an efficient, scalable, and productive language
@@ -13,7 +13,7 @@ What matters in the end isn’t the number of mistakes we make, but our capacity
 
 This chapter presents a quick refresher as to why Go has become mainstream over the years. We’ll discuss why, despite Go being considered simple to learn, mastering its nuances can be challenging. Finally, we’ll introduce the concepts this book covers.
 
-## Go Outline
+## Go outline
 
 If you are reading this book, it’s likely that you’re already sold on Go. Therefore, this section provides a brief reminder about what makes Go such a powerful language.
 
@@ -36,7 +36,7 @@ Go was built from the ground up with solid features such as outstanding concurre
 
 Some also consider Go a simple language. And, in a sense, this isn’t necessarily wrong. For example, a newcomer can learn the language’s main features in less than a day. So why read a book centered on the concept of mistakes if Go is simple?
 
-## Simple doesn’t Mean Easy
+## Simple doesn’t mean easy
 
 There is a subtle difference between simple and easy. _Simple_, applied to a technology, means not complicated to learn or understand. However, _easy_ means that we can achieve anything without much effort. Go is simple to learn but not necessarily easy to master.
 
@@ -50,7 +50,7 @@ This leitmotif—simple doesn’t mean easy—can be generalized to many aspects
 
 This book aims to help accelerate our journey toward proficiency by delving into 100 Go mistakes.
 
-## 100 Go Mistakes
+## 100 Go mistakes
 
 Why should we read a book about common Go mistakes? Why not deepen our knowledge with an ordinary book that would dig into different topics?
 
@@ -81,35 +81,35 @@ Furthermore, bugs can also lead to tragic impacts. We can, for example, mention 
 
 This book covers plenty of cases that could lead to various software bugs, including data races, leaks, logic errors, and other defects. Although accurate tests should be a way to discover such bugs as early as possible, we may sometimes miss cases because of different factors such as time constraints or complexity. Therefore, as a Go developer, it’s essential to make sure we avoid common bugs.
 
-### Needless Complexity
+### Needless complexity
 
 The next category of mistakes is related to unnecessary complexity. A significant part of software complexity comes from the fact that, as developers, we strive to think about imaginary futures. Instead of solving concrete problems right now, it can be tempting to build evolutionary software that could tackle whatever future use case arises. However, this leads to more drawbacks than benefits in most cases because it can make a codebase more complex to understand and reason about.
 
 Getting back to Go, we can think of plenty of use cases where developers might be tempted to design abstractions for future needs, such as interfaces or generics. This book discusses topics where we should remain careful not to harm a codebase with needless complexity.
 
-### Weaker Readability
+### Weaker readability
 
 Another kind of mistake is to weaken readability. As Robert C. Martin wrote in his book _Clean Code: A Handbook of Agile Software Craftsmanship_, the ratio of time spent reading versus writing is well over 10 to 1. Most of us started to program on solo projects where readability wasn’t that important. However, today’s software engineering is programming with a time dimension: making sure we can still work with and maintain an application months, years, or perhaps even decades later.
 
 When programming in Go, we can make many mistakes that can harm readability. These mistakes may include nested code, data type representations, or not using named result parameters in some cases. Throughout this book, we will learn how to write readable code and care for future readers (including our future selves).
 
-### Suboptimal or Unidiomatic Organization
+### Suboptimal or unidiomatic organization
 
 Be it while working on a new project or because we acquire inaccurate reflexes, another type of mistake is organizing our code and a project suboptimally and unidiomatically. Such issues can make a project harder to reason about and maintain. This book covers some of these common mistakes in Go. For example, we’ll look at how to structure a project and deal with utility packages or init functions. All in all, looking at these mistakes should help us organize our code and projects more efficiently and idiomatically.
 
-### Lack of API Convenience
+### Lack of API convenience
 
 Making common mistakes that weaken how convenient an API is for our clients is another type of mistake. If an API isn’t user-friendly, it will be less expressive and, hence, harder to understand and more error-prone.
 
 We can think about many situations such as overusing any types, using the wrong creational pattern to deal with options, or blindly applying standard practices from object-oriented programming that affect the usability of our APIs. This book covers common mistakes that prevent us from exposing convenient APIs for our users.
 
-### Under-optimized Code
+### Under-optimized code
 
 Under-optimized code is another type of mistake made by developers. It can happen for various reasons, such as not understanding language features or even a lack of fundamental knowledge. Performance is one of the most obvious impacts of this mistake, but not the only one.
 
 We can think about optimizing code for other goals, such as accuracy. For example, this book provides some common techniques to ensure that floating-point operations are accurate. Meanwhile, we will cover plenty of cases that can negatively impact performance code because of poorly parallelized executions, not knowing how to reduce allocations, or the impacts of data alignment, for example. We will tackle optimization via different prisms.
 
-### Lack of Productivity
+### Lack of productivity
 
 In most cases, what’s the best language we can choose when working on a new project? The one we’re the most productive with. Being comfortable with how a language works and exploiting it to get the best out of it is crucial to reach proficiency.
 
