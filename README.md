@@ -1,8 +1,8 @@
 # 100 Go Mistakes and How to Avoid Them
 
-Source code and community space of 📖 _100 Go Mistakes and How to Avoid Them_, published by Manning in August 2022.
+Official repository of 📖 _100 Go Mistakes and How to Avoid Them_, published by Manning in August 2022.
 
-This repository is also available in [Chinese 🇨🇳](README.zh_CN.md).
+Also available in [Chinese 🇨🇳](README.zh_CN.md).
 
 ## ❤️ Sponsor this Repository
 
