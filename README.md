@@ -175,13 +175,15 @@ This section contains a summary of the 100 mistakes in the book. Meanwhile, it's
 
 #### Unintended variable shadowing (#1)
 
-TL;DR: Avoiding shadowed variables can help prevent mistakes like referencing the wrong variable or confusing readers.
+**TL;DR**: Avoiding shadowed variables can help prevent mistakes like referencing the wrong variable or confusing readers.
 
 Variable shadowing occurs when a variable name is redeclared in an inner block, but this practice is prone to mistakes. Imposing a rule to forbid shadowed variables depends on personal taste. For example, sometimes it can be convenient to reuse an existing variable name like `err` for errors. Yet, in general, we should remain cautious because we now know that we can face a scenario where the code compiles, but the variable that receives the value is not the one expected.
 
+[[Source code]](02-code-project-organization/1-variable-shadowing/main.go)
+
 #### Unnecessary nested code (#2)
 
-TL;DR: Avoiding nested levels and keeping the happy path aligned on the left makes building a mental code model easier.
+**TL;DR**: Avoiding nested levels and keeping the happy path aligned on the left makes building a mental code model easier.
 
 In general, the more nested levels a function requires, the more complex it is to read and understand. Let’s see some different applications of this rule to optimize our code for readability:
 
@@ -229,7 +231,7 @@ Writing readable code is an important challenge for every developer. Striving to
 
 #### Misusing init functions (#3)
 
-TL;DR: When initializing variables, remember that init functions have limited error handling and make state handling and testing more complex. In most cases, initializations should be handled as specific functions.
+**TL;DR**: When initializing variables, remember that init functions have limited error handling and make state handling and testing more complex. In most cases, initializations should be handled as specific functions.
 
 An init function is a function used to initialize the state of an application. It takes no arguments and returns no result (a `func()` function). When a package is initialized, all the constant and variable declarations in the package are evaluated. Then, the init functions are executed.
 
@@ -242,7 +244,7 @@ We should be cautious with init functions. They can be helpful in some situation
 
 #### Overusing getters and setters (#4)
 
-TL;DR: Forcing the use of getters and setters isn’t idiomatic in Go. Being pragmatic and finding the right balance between efficiency and blindly following certain idioms should be the way to go.
+**TL;DR**: Forcing the use of getters and setters isn’t idiomatic in Go. Being pragmatic and finding the right balance between efficiency and blindly following certain idioms should be the way to go.
 
 Data encapsulation refers to hiding the values or state of an object. Getters and setters are means to enable encapsulation by providing exported methods on top of unexported object fields.
 
@@ -252,7 +254,7 @@ Remember that Go is a unique language designed for many characteristics, includi
 
 #### Interface pollution (#5)
 
-TL;DR: Abstractions should be discovered, not created. To prevent unnecessary complexity, create an interface when you need it and not when you foresee needing it, or if you can at least prove the abstraction to be a valid one.
+**TL;DR**: Abstractions should be discovered, not created. To prevent unnecessary complexity, create an interface when you need it and not when you foresee needing it, or if you can at least prove the abstraction to be a valid one.
 
 An interface provides a way to specify the behavior of an object. We use interfaces to create common abstractions that multiple objects can implement. What makes Go interfaces so different is that they are satisfied implicitly. There is no explicit keyword like `implements` to mark that an object `X` implements interface `Y`.
 
@@ -271,7 +273,7 @@ Let’s not try to solve a problem abstractly but solve what has to be solved no
 
 #### Interface on the producer side (#6)
 
-TL;DR: Keeping interfaces on the client side avoids unnecessary abstractions.
+**TL;DR**: Keeping interfaces on the client side avoids unnecessary abstractions.
 
 Interfaces are satisfied implicitly in Go, which tends to be a gamechanger compared to languages with an explicit implementation. In most cases, the approach to follow is similar to what we described in the previous section: _abstractions should be discovered, not created_. This means that it’s not up to the producer to force a given abstraction for all the clients. Instead, it’s up to the client to decide whether it needs some form of abstraction and then determine the best abstraction level for its needs.
 
@@ -279,19 +281,19 @@ An interface should live on the consumer side in most cases. However, in particu
 
 #### Returning interfaces (#7)
 
-TL;DR: To prevent being restricted in terms of flexibility, a function shouldn’t return interfaces but concrete implementations in most cases. Conversely, a function should accept interfaces whenever possible.
+**TL;DR**: To prevent being restricted in terms of flexibility, a function shouldn’t return interfaces but concrete implementations in most cases. Conversely, a function should accept interfaces whenever possible.
 
 In most cases, we shouldn’t return interfaces but concrete implementations. Otherwise, it can make our design more complex due to package dependencies and can restrict flexibility because all the clients would have to rely on the same abstraction. Again, the conclusion is similar to the previous sections: if we know (not foresee) that an abstraction will be helpful for clients, we can consider returning an interface. Otherwise, we shouldn’t force abstractions; they should be discovered by clients. If a client needs to abstract an implementation for whatever reason, it can still do that on the client’s side.
 
 #### `any` says nothing (#8)
 
-TL;DR: Only use `any` if you need to accept or return any possible type, such as `json.Marshal`. Otherwise, `any` doesn’t provide meaningful information and can lead to compile-time issues by allowing a caller to call methods with any data type.
+**TL;DR**: Only use `any` if you need to accept or return any possible type, such as `json.Marshal`. Otherwise, `any` doesn’t provide meaningful information and can lead to compile-time issues by allowing a caller to call methods with any data type.
 
 The `any` type can be helpful if there is a genuine need for accepting or returning any possible type (for instance, when it comes to marshaling or formatting). In general, we should avoid overgeneralizing the code we write at all costs. Perhaps a little bit of duplicated code might occasionally be better if it improves other aspects such as code expressiveness.
 
 #### [Being confused about when to use generics](https://teivah.medium.com/when-to-use-generics-in-go-36d49c1aeda) (#9)
 
-TL;DR: Relying on generics and type parameters can prevent writing boilerplate code to factor out elements or behaviors. However, do not use type parameters prematurely, but only when you see a concrete need for them. Otherwise, they introduce unnecessary abstractions and complexity.
+**TL;DR**: Relying on generics and type parameters can prevent writing boilerplate code to factor out elements or behaviors. However, do not use type parameters prematurely, but only when you see a concrete need for them. Otherwise, they introduce unnecessary abstractions and complexity.
 
 
 <details>
@@ -525,7 +527,7 @@ Let’s not pollute our code with needless abstractions, and let’s focus on so
 
 #### Not being aware of the possible problems with type embedding (#10)
 
-TL;DR: Using type embedding can also help avoid boilerplate code; however, ensure that doing so doesn’t lead to visibility issues where some fields should have remained hidden.
+**TL;DR**: Using type embedding can also help avoid boilerplate code; however, ensure that doing so doesn’t lead to visibility issues where some fields should have remained hidden.
 
 When creating a struct, Go offers the option to embed types. But this can sometimes lead to unexpected behaviors if we don’t understand all the implications of type embedding. Throughout this section, we look at how to embed types, what these bring, and the possible issues.
 
@@ -556,7 +558,7 @@ Using type embedding consciously by keeping these constraints in mind can help a
 
 #### Not using the functional options pattern (#11)
 
-TL;DR: To handle options conveniently and in an API-friendly manner, use the functional options pattern.
+**TL;DR**: To handle options conveniently and in an API-friendly manner, use the functional options pattern.
 
 Although there are different implementations with minor variations, the main idea is as follows:
 * An unexported struct holds the configuration: options.
@@ -611,7 +613,7 @@ The functional options pattern provides a handy and API-friendly way to handle o
 
 #### Project misorganization (project structure and package organization) (#12)
 
-TL;DR: Following a layout such as [project-layout](https://github.com/golang-standards/project-layout) can be a good way to start structuring Go projects, especially if you are looking for existing conventions to standardize a new project.
+**TL;DR**: Following a layout such as [project-layout](https://github.com/golang-standards/project-layout) can be a good way to start structuring Go projects, especially if you are looking for existing conventions to standardize a new project.
 
 Regarding the overall organization, there are different schools of thought. For example, should we organize our application by context or by layer? It depends on our preferences. We may favor grouping code per context (such as the customer context, the contract context, etc.), or we may favor following hexagonal architecture principles and group per technical layer. If the decision we make fits our use case, it cannot be a wrong decision, as long as we remain consistent with it.
 
@@ -626,19 +628,19 @@ Organizing a project isn’t straightforward, but following these rules should h
 
 #### Creating utility packages (#13)
 
-TL;DR: Naming is a critical piece of application design. Creating packages such as `common`, `util`, and `shared` doesn’t bring much value for the reader. Refactor such packages into meaningful and specific package names.
+**TL;DR**: Naming is a critical piece of application design. Creating packages such as `common`, `util`, and `shared` doesn’t bring much value for the reader. Refactor such packages into meaningful and specific package names.
 
 Also, bear in mind that naming a package after what it provides and not what it contains can be an efficient way to increase its expressiveness.
 
 #### Ignoring package name collisions (#14)
 
-TL;DR: To avoid naming collisions between variables and packages, leading to confusion or perhaps even bugs, use unique names for each one. If this isn’t feasible, use an import alias to change the qualifier to differentiate the package name from the variable name, or think of a better name.
+**TL;DR**: To avoid naming collisions between variables and packages, leading to confusion or perhaps even bugs, use unique names for each one. If this isn’t feasible, use an import alias to change the qualifier to differentiate the package name from the variable name, or think of a better name.
 
 Package collisions occur when a variable name collides with an existing package name, preventing the package from being reused. We should prevent variable name collisions to avoid ambiguity. If we face a collision, we should either find another meaningful name or use an import alias.
 
 #### Missing code documentation (#15)
 
-TL;DR: To help clients and maintainers understand your code’s purpose, document exported elements.
+**TL;DR**: To help clients and maintainers understand your code’s purpose, document exported elements.
 
 Documentation is an important aspect of coding. It simplifies how clients can consume an API but can also help in maintaining a project. In Go, we should follow some rules to make our code idiomatic:
 
@@ -654,7 +656,7 @@ Documenting our code shouldn’t be a constraint. We should take the opportunity
 
 #### Not using linters (#16)
 
-TL;DR: To improve code quality and consistency, use linters and formatters.
+**TL;DR**: To improve code quality and consistency, use linters and formatters.
 
 A linter is an automatic tool to analyze code and catch errors. The scope of this section isn’t to give an exhaustive list of the existing linters; otherwise, it will become deprecated pretty quickly. But we should understand and remember why linters are essential for most Go projects.
 
