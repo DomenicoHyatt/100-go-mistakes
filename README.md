@@ -28,6 +28,8 @@ For example:
 
 If you're a Go developer looking to improve your skills, this book is for you. With a focus on practical examples, _100 Go Mistakes and How to Avoid Them_ covers a wide range of topics from concurrency and error handling to testing and code organization. You'll learn to write more idiomatic, efficient, and maintainable code and become a proficient Go developer.
 
+Read the first chapter [here](res/chapter-1.md).
+
 ![](inside-cover.png)
 
 ### Quotes
@@ -464,7 +466,7 @@ Meanwhile, we should also look at golangci-lint (https://github.com/golangci/ go
 
 Linters and formatters are a powerful way to improve the quality and consistency of our codebase. Let’s take the time to understand which one we should use and make sure we automate their execution (such as a CI or Git precommit hook).
 
-### Data Types ([PDF chapter](chapter-3.pdf))
+### Data Types
 
 #### Creating confusion with octal literals (#17)
 
