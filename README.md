@@ -481,6 +481,8 @@ We should also note the other integer literal representations:
 
 We can also use an underscore character (_) as a separator for readability. For example, we can write 1 billion this way: `1_000_000_000`. We can also use the under- score character with other representations (for example, `0b00_00_01`).
 
+[[Source code]](03-data-types/17-octal-literals/main.go)
+
 #### Neglecting integer overflows (#18)
 
 tldr Because integer overflows and underflows are handled silently in Go, you can implement your own functions to catch them.
@@ -496,6 +498,8 @@ constant 2147483648 overflows int32
 ```
 
 However, at run time, an integer overflow or underflow is silent; this does not lead to an application panic. It is essential to keep this behavior in mind, because it can lead to sneaky bugs (for example, an integer increment or addition of positive integers that leads to a negative result).
+
+[[Source code]](03-data-types/18-integer-overflows)
 
 #### Not understanding floating-points (#19)
 
@@ -517,11 +521,15 @@ Because Go’s `float32` and `float64` types are approximations, we have to bear
 * When performing additions or subtractions, group operations with a similar order of magnitude for better accuracy.
 * To favor accuracy, if a sequence of operations requires addition, subtraction, multiplication, or division, perform the multiplication and division operations first.
 
+[[Source code]](03-data-types/19-floating-points/main.go)
+
 #### Not understanding slice length and capacity (#20)
 
 tldr Understanding the difference between slice length and capacity should be part of a Go developer’s core knowledge. The slice length is the number of available elements in the slice, whereas the slice capacity is the number of elements in the backing array.
 
 TODO
+
+[[Source code]](03-data-types/20-slice-length-cap/main.go)
 
 #### Inefficient slice initialization (#21)
 
@@ -530,6 +538,8 @@ tldr When creating a slice, initialize it with a given length or capacity if its
 While initializing a slice using `make`, we can provide a length and an optional capacity. Forgetting to pass an appropriate value for both of these parameters when it makes sense is a widespread mistake. Indeed, it can lead to multiple copies and additional effort for the GC to clean the temporary backing arrays. Performance-wise, there’s no good reason not to give the Go runtime a helping hand.
 
 Our options are to allocate a slice with either a given capacity or a given length. Of these two solutions, we have seen that the second tends to be slightly faster. But using a given capacity and append can be easier to implement and read in some contexts.
+
+[[Source code]](03-data-types/21-slice-init/main.go)
 
 #### Being confused about nil vs. empty slice (#22)
 
@@ -543,6 +553,8 @@ In Go, there is a distinction between nil and empty slices. A nil slice is equal
  
 The last option, `[]string{}`, should be avoided if we initialize the slice without ele- ments. Finally, let’s check whether the libraries we use make the distinctions between nil and empty slices to prevent unexpected behaviors.
 
+[[Source code]](03-data-types/22-nil-empty-slice/)
+
 #### Not properly checking if a slice is empty (#23)
 
 tldr To check if a slice doesn’t contain any element, check its length. This check works regardless of whether the slice is `nil` or empty. The same goes for maps. To design unambiguous APIs, you shouldn’t distinguish between nil and empty slices.
@@ -551,29 +563,45 @@ To determine whether a slice has elements, we can either do it by checking if th
 
 Meanwhile, when designing interfaces, we should avoid distinguishing nil and empty slices, which leads to subtle programming errors. When returning slices, it should make neither a seman- tic nor a technical difference if we return a nil or empty slice. Both should mean the same thing for the callers. This principle is the same with maps. To check if a map is empty, check its length, not whether it’s nil.
 
+[[Source code]](03-data-types/23-checking-slice-empty/main.go)
+
 #### Not making slice copies correctly (#24)
 
-To copy one slice to another using the `copy` built-in function, remember that the number of copied elements corresponds to the minimum between the two slice’s lengths.
+tldr To copy one slice to another using the `copy` built-in function, remember that the number of copied elements corresponds to the minimum between the two slice’s lengths.
+
+Copying elements from one slice to another is a reasonably frequent operation. When using copy, we must recall that the number of elements copied to the destina- tion corresponds to the minimum between the two slices’ lengths. Also bear in mind that other alternatives exist to copy a slice, so we shouldn’t be surprised if we find them in a codebase.
+
+[[Source code]](03-data-types/24-slice-copy/main.go)
 
 #### Unexpected side effects using slice append (#25)
 
 Using copy or the full slice expression is a way to prevent `append` from creating conflicts if two different functions use slices backed by the same array. However, only a slice copy prevents memory leaks if you want to shrink a large slice.
 
+[[Source code]](03-data-types/25-slice-append/main.go)
+
 #### Slice and memory leaks (#26)
 
 Working with a slice of pointers or structs with pointer fields, you can avoid memory leaks by marking as nil the elements excluded by a slicing operation.
+
+[[Source code]](03-data-types/26-slice-memory-leak/)
 
 #### Inefficient map initialization (#27)
 
 See [#21](#inefficient-slice-initialization-21).
 
+[[Source code]](03-data-types/27-map-init/main_test.go)
+
 #### [Map and memory leaks](https://teivah.medium.com/maps-and-memory-leaks-in-go-a85ebe6e7e69) (#28)
 
 A map can always grow in memory, but it never shrinks. Hence, if it leads to some memory issues, you can try different options, such as forcing Go to recreate the map or using pointers.
 
+[[Source code]](03-data-types/28-map-memory-leak/main.go)
+
 #### Comparing values incorrectly (#29)
 
 To compare types in Go, you can use the == and != operators if two types are comparable: Booleans, numerals, strings, pointers, channels, and structs are composed entirely of comparable types. Otherwise, you can either use `reflect.DeepEqual` and pay the price of reflection or use custom implementations and libraries.
+
+[[Source code]](03-data-types/29-comparing-values/main.go)
 
 ### Control Structures
 
@@ -581,13 +609,19 @@ To compare types in Go, you can use the == and != operators if two types are com
 
 The value element in a `range` loop is a copy. Therefore, to mutate a struct, for example, access it via its index or via a classic `for` loop (unless the element or the field you want to modify is a pointer).
 
+[[Source code]](04-control-structures/30-range-loop-element-copied/)
+
 #### Ignoring how arguments are evaluated in `range` loops (channels and arrays) (#31)
 
 Understanding that the expression passed to the `range` operator is evaluated only once before the beginning of the loop can help you avoid common mistakes such as inefficient assignment in channel or slice iteration.
 
+[[Source code]](04-control-structures/31-range-loop-arg-evaluation/)
+
 #### Ignoring the impacts of using pointer elements in `range` loops (#32)
 
 Using a local variable or accessing an element using an index, you can prevent mistakes while copying pointers inside a loop.
+
+[[Source code]](04-control-structures/32-range-loop-pointers/)
 
 #### Making wrong assumptions during map iterations (ordering and map insert during iteration) (#33)
 
@@ -597,13 +631,19 @@ To ensure predictable outputs when using maps, remember that a map data structur
 * Doesn’t have a deterministic iteration order
 * Doesn’t guarantee that an element added during an iteration will be produced during this iteration
 
+[[Source code]](04-control-structures/33-map-iteration/main.go)
+
 #### Ignoring how the `break` statement works (#34)
 
 Using `break` or `continue` with a label enforces breaking a specific statement. This can be helpful with `switch` or `select` statements inside loops.
 
+[[Source code]](04-control-structures/34-break/main.go)
+
 #### Using `defer` inside a loop (#35)
 
 Extracting loop logic inside a function leads to executing a `defer` statement at the end of each iteration.
+
+[[Source code]](04-control-structures/35-defer-loop/main.go)
 
 ### Strings
 
@@ -611,25 +651,37 @@ Extracting loop logic inside a function leads to executing a `defer` statement a
 
 Understanding that a rune corresponds to the concept of a Unicode code point and that it can be composed of multiple bytes should be part of the Go developer’s core knowledge to work accurately with strings.
 
+[[Source code]](05-strings/36-rune/main.go)
+
 #### Inaccurate string iteration (#37)
 
 Iterating on a string with the `range` operator iterates on the runes with the index corresponding to the starting index of the rune’s byte sequence. To access a specific rune index (such as the third rune), convert the string into a `[]rune`.
+
+[[Source code]](05-strings/37-string-iteration/main.go)
 
 #### Misusing trim functions (#38)
 
 `strings.TrimRight`/`strings.TrimLeft` removes all the trailing/leading runes contained in a given set, whereas `strings.TrimSuffix`/`strings.TrimPrefix` returns a string without a provided suffix/prefix.
 
+[[Source code]](05-strings/38-trim/main.go)
+
 #### Under-optimized strings concatenation (#39)
 
 Concatenating a list of strings should be done with `strings.Builder` to prevent allocating a new string during each iteration.
+
+[[Source code]](05-strings/39-string-concat/)
 
 #### Useless string conversions (#40)
 
 Remembering that the `bytes` package offers the same operations as the `strings` package can help avoid extra byte/string conversions.
 
+[[Source code]](05-strings/40-string-conversion/main.go)
+
 #### Substring and memory leaks (#41)
 
 Using copies instead of substrings can prevent memory leaks, as the string returned by a substring operation will be backed by the same byte array.
+
+[[Source code]](05-strings/41-substring-memory-leak/main.go)
 
 ### Functions and Methods
 
@@ -637,25 +689,37 @@ Using copies instead of substrings can prevent memory leaks, as the string retur
 
 The decision whether to use a value or a pointer receiver should be made based on factors such as the type, whether it has to be mutated, whether it contains a field that can’t be copied, and how large the object is. When in doubt, use a pointer receiver.
 
+[[Source code]](06-functions-methods/42-receiver/)
+
 #### Never using named result parameters (#43)
 
 Using named result parameters can be an efficient way to improve the readability of a function/method, especially if multiple result parameters have the same type. In some cases, this approach can also be convenient because named result parameters are initialized to their zero value. But be cautious about potential side effects.
+
+[[Source code]](06-functions-methods/43-named-result-parameters/main.go)
 
 #### Unintended side effects with named result parameters (#44)
 
 See [#43](#never-using-named-result-parameters-43).
 
+[[Source code]](06-functions-methods/44-side-effects-named-result-parameters/main.go)
+
 #### Returning a nil receiver (#45)
 
 When returning an interface, be cautious about returning not a nil pointer but an explicit nil value. Otherwise, unintended consequences may result because the caller will receive a non-nil value.
+
+[[Source code]](06-functions-methods/45-nil-receiver/main.go)
 
 #### Using a filename as a function input (#46)
 
 Designing functions to receive `io.Reader` types instead of filenames improves the reusability of a function and makes testing easier.
 
+[[Source code]](06-functions-methods/46-function-input/)
+
 #### Ignoring how `defer` arguments and receivers are evaluated (argument evaluation, pointer, and value receivers) (#47)
 
 Passing a pointer to a `defer` function and wrapping a call inside a closure are two possible solutions to overcome the immediate evaluation of arguments and receivers.
+
+[[Source code]](06-functions-methods/47-defer-evaluation/)
 
 ### Error Management
 
@@ -663,13 +727,19 @@ Passing a pointer to a `defer` function and wrapping a call inside a closure are
 
 Using `panic` is an option to deal with errors in Go. However, it should only be used sparingly in unrecoverable conditions: for example, to signal a programmer error or when you fail to load a mandatory dependency.
 
+[[Source code]](07-error-management/48-panic/main.go)
+
 #### Ignoring when to wrap an error (#49)
 
 Wrapping an error allows you to mark an error and/or provide additional context. However, error wrapping creates potential coupling as it makes the source error available for the caller. If you want to prevent that, don’t use error wrapping.
 
+[[Source code]](07-error-management/49-error-wrapping/main.go)
+
 #### Comparing an error type inaccurately (#50)
 
 If you use Go 1.13 error wrapping with the `%w` directive and `fmt.Errorf`, comparing an error against a type or a value has to be done using `errors.As` or `errors.Is`, respectively. Otherwise, if the returned error you want to check is wrapped, it will fail the checks.
+
+[[Source code]](07-error-management/50-compare-error-type/main.go)
 
 #### Comparing an error value inaccurately (#51)
 
@@ -677,17 +747,25 @@ See [#50](#comparing-an-error-type-inaccurately-50).
 
 To convey an expected error, use error sentinels (error values). An unexpected error should be a specific error type.
 
+[[Source code]](07-error-management/51-comparing-error-value/main.go)
+
 #### Handling an error twice (#52)
 
 In most situations, an error should be handled only once. Logging an error is handling an error. Therefore, you have to choose between logging or returning an error. In many cases, error wrapping is the solution as it allows you to provide additional context to an error and return the source error.
+
+[[Source code]](07-error-management/52-handling-error-twice/main.go)
 
 #### Not handling an error (#53)
 
 Ignoring an error, whether during a function call or in a `defer` function, should be done explicitly using the blank identifier. Otherwise, future readers may be confused about whether it was intentional or a miss.
 
+[[Source code]](07-error-management/53-not-handling-error/main.go)
+
 #### Not handling `defer` errors (#54)
 
 In many cases, you shouldn’t ignore an error returned by a `defer` function. Either handle it directly or propagate it to the caller, depending on the context. If you want to ignore it, use the blank identifier.
+
+[[Source code]](07-error-management/54-defer-errors/main.go)
 
 ### Concurrency: Foundations
 
@@ -699,6 +777,8 @@ Understanding the fundamental differences between concurrency and parallelism is
 
 To be a proficient developer, you must acknowledge that concurrency isn’t always faster. Solutions involving parallelization of minimal workloads may not necessarily be faster than a sequential implementation. Benchmarking sequential versus concurrent solutions should be the way to validate assumptions.
 
+[[Source code]](08-concurrency-foundations/56-faster/)
+
 #### Being puzzled about when to use channels or mutexes (#57)
 
 Being aware of goroutine interactions can also be helpful when deciding between channels and mutexes. In general, parallel goroutines require synchronization and hence mutexes. Conversely, concurrent goroutines generally require coordination and orchestration and hence channels.
@@ -709,13 +789,19 @@ Being proficient in concurrency also means understanding that data races and rac
 
 Understanding the Go memory model and the underlying guarantees in terms of ordering and synchronization is essential to prevent possible data races and/or race conditions.
 
+[[Source code]](08-concurrency-foundations/58-races/)
+
 #### Not understanding the concurrency impacts of a workload type (#59)
 
 When creating a certain number of goroutines, consider the workload type. Creating CPU-bound goroutines means bounding this number close to the `GOMAXPROCS` variable (based by default on the number of CPU cores on the host). Creating I/O-bound goroutines depends on other factors, such as the external system.
 
+[[Source code]](08-concurrency-foundations/59-workload-type/main.go)
+
 #### Misunderstanding Go contexts (#60)
 
 Go contexts are also one of the cornerstones of concurrency in Go. A context allows you to carry a deadline, a cancellation signal, and/or a list of keys-values.
+
+[[Source code]](08-concurrency-foundations/60-contexts/main.go)
 
 ### Concurrency: Practice
 
@@ -723,17 +809,25 @@ Go contexts are also one of the cornerstones of concurrency in Go. A context all
 
 Understanding the conditions when a context can be canceled should matter when propagating it: for example, an HTTP handler canceling the context when the response has been sent.
 
+[[Source code]](09-concurrency-practice/61-inappropriate-context/main.go)
+
 #### Starting a goroutine without knowing when to stop it (#62)
 
 Avoiding leaks means being mindful that whenever a goroutine is started, you should have a plan to stop it eventually.
+
+[[Source code]](09-concurrency-practice/62-starting-goroutine/)
 
 #### Not being careful with goroutines and loop variables (#63)
 
 To avoid bugs with goroutines and loop variables, create local variables or call functions instead of closures.
 
+[[Source code]](09-concurrency-practice/63-goroutines-loop-variables/main.go)
+
 #### Expecting a deterministic behavior using select and channels (#64)
 
 Understanding that `select` with multiple channels chooses the case randomly if multiple options are possible prevents making wrong assumptions that can lead to subtle concurrency bugs.
+
+[[Source code]](09-concurrency-practice/64-select-behavior/main.go)
 
 #### Not using notification channels (#65)
 
@@ -742,6 +836,8 @@ Send notifications using a `chan struct{}` type.
 #### Not using nil channels (#66)
 
 Using nil channels should be part of your concurrency toolset because it allows you to _remove_ cases from `select` statements, for example.
+
+[[Source code]](09-concurrency-practice/66-nil-channels/main.go)
 
 #### Being puzzled about channel size (#67)
 
@@ -753,29 +849,43 @@ You should have a good reason to specify a channel size other than one for buffe
 
 Being aware that string formatting may lead to calling existing functions means watching out for possible deadlocks and other data races.
 
+[[Source code]](09-concurrency-practice/68-string-formatting/main.go)
+
 #### Creating data races with append (#69)
 
 Calling `append` isn’t always data-race-free; hence, it shouldn’t be used concurrently on a shared slice.
+
+[[Source code]](09-concurrency-practice/69-data-race-append/main.go)
 
 #### Using mutexes inaccurately with slices and maps (#70)
 
 Remembering that slices and maps are pointers can prevent common data races.
 
+[[Source code]](09-concurrency-practice/70-mutex-slices-maps/main.go)
+
 #### Misusing `sync.WaitGroup` (#71)
 
 To accurately use `sync.WaitGroup`, call the `Add` method before spinning up goroutines.
+
+[[Source code]](09-concurrency-practice/71-wait-group/main.go)
 
 #### Forgetting about `sync.Cond` (#72)
 
 You can send repeated notifications to multiple goroutines with `sync.Cond`.
 
+[[Source code]](09-concurrency-practice/72-cond/main.go)
+
 #### Not using `errgroup` (#73)
 
 You can synchronize a group of goroutines and handle errors and contexts with the `errgroup` package.
 
+[[Source code]](09-concurrency-practice/73-errgroup/main.go)
+
 #### Copying a `sync` type (#74)
 
 `sync` types shouldn’t be copied.
+
+[[Source code]](09-concurrency-practice/74-copying-sync/main.go)
 
 ### Standard Library
 
@@ -783,9 +893,13 @@ You can synchronize a group of goroutines and handle errors and contexts with th
 
 Remain cautious with functions accepting a `time.Duration`. Even though passing an integer is allowed, strive to use the time API to prevent any possible confusion.
 
+[[Source code]](10-standard-lib/75-wrong-time-duration/main.go)
+
 #### `time.After` and memory leaks (#76)
 
 Avoiding calls to `time.After` in repeated functions (such as loops or HTTP handlers) can avoid peak memory consumption. The resources created by `time.After` are released only when the timer expires.
+
+[[Source code]](10-standard-lib/76-time-after/main.go)
 
 #### JSON handling common mistakes (#77)
 
@@ -793,19 +907,27 @@ Avoiding calls to `time.After` in repeated functions (such as loops or HTTP hand
 
   Be careful about using embedded fields in Go structs. Doing so may lead to sneaky bugs like an embedded time.Time field implementing the `json.Marshaler` interface, hence overriding the default marshaling behavior.
 
+[[Source code]](10-standard-lib/77-json-handling/type-embedding/main.go)
+
 * JSON and the monotonic clock
 
   When comparing two `time.Time` structs, recall that `time.Time` contains both a wall clock and a monotonic clock, and the comparison using the == operator is done on both clocks.
 
+[[Source code]](10-standard-lib/77-json-handling/monotonic-clock/main.go)
+
 * Map of `any`
 
   To avoid wrong assumptions when you provide a map while unmarshaling JSON data, remember that numerics are converted to `float64` by default.
+
+[[Source code]](10-standard-lib/77-json-handling/map-any/main.go)
 
 #### Common SQL mistakes (#78)
 
 * Forgetting that `sql.Open` doesn't necessarily establish connections to a database
 
   Call the `Ping` or `PingContext` method if you need to test your configuration and make sure a database is reachable.
+
+[[Source code]](10-standard-lib/78-sql/sql-open)
 
 * Forgetting about connections pooling
 
@@ -814,32 +936,46 @@ Avoiding calls to `time.After` in repeated functions (such as loops or HTTP hand
 * Not using prepared statements
 
   Using SQL prepared statements makes queries more efficient and more secure.
+ 
+[[Source code]](10-standard-lib/78-sql/prepared-statements)
 
 * Mishandling null values
 
   Deal with nullable columns in tables using pointers or `sql.NullXXX` types.
+ 
+[[Source code]](10-standard-lib/78-sql/null-values/main.go)
 
 * Not handling rows iteration errors
 
   Call the `Err` method of `sql.Rows` after row iterations to ensure that you haven’t missed an error while preparing the next row.
 
+[[Source code]](10-standard-lib/78-sql/rows-iterations-errors)
+
 #### Not closing transient resources (HTTP body, `sql.Rows`, and `os.File`) (#79)
 
 Eventually close all structs implementing `io.Closer` to avoid possible leaks.
+
+[[Source code]](10-standard-lib/79-closing-resources/)
 
 #### Forgetting the return statement after replying to an HTTP request (#80)
 
 To avoid unexpected behaviors in HTTP handler implementations, make sure you don’t miss the `return` statement if you want a handler to stop after `http.Error`.
 
+[[Source code]](10-standard-lib/80-http-return/main.go)
+
 #### Using the default HTTP client and server (#81)
 
 For production-grade applications, don’t use the default HTTP client and server implementations. These implementations are missing timeouts and behaviors that should be mandatory in production.
+
+[[Source code]](10-standard-lib/81-default-http-client-server/)
 
 ### Testing
 
 #### Not categorizing tests (build tags, environment variables, and short mode) (#82)
 
 Categorizing tests using build flags, environment variables, or short mode makes the testing process more efficient. You can create test categories using build flags or environment variables (for example, unit versus integration tests) and differentiate short from long-running tests to decide which kinds of tests to execute.
+
+[[Source code]](11-testing/82-categorizing-tests/)
 
 #### Not enabling the race flag (#83)
 
@@ -855,19 +991,29 @@ Use the `-shuffle` flag to help ensure that a test suite doesn’t rely on wrong
 
 Table-driven tests are an efficient way to group a set of similar tests to prevent code duplication and make future updates easier to handle.
 
+[[Source code]](11-testing/85-table-driven-tests/main_test.go)
+
 #### Sleeping in unit tests (#86)
 
 Avoid sleeps using synchronization to make a test less flaky and more robust. If synchronization isn’t possible, consider a retry approach.
+
+[[Source code]](11-testing/86-sleeping/main_test.go)
 
 #### Not dealing with the time API efficiently (#87)
 
 Understanding how to deal with functions using the time API is another way to make a test less flaky. You can use standard techniques such as handling the time as part of a hidden dependency or asking clients to provide it.
 
+[[Source code]](11-testing/87-time-api/)
+
 #### Not using testing utility packages (`httptest` and `iotest`) (#88)
 
-The `httptest` package is helpful for dealing with HTTP applications. It provides a set of utilities to test both clients and servers.
+* The `httptest` package is helpful for dealing with HTTP applications. It provides a set of utilities to test both clients and servers.
+* 
+[[Source code]](11-testing/88-utility-package/httptest/main_test.go)
 
-The `iotest` package helps write io.Reader and test that an application is tolerant to errors.
+* The `iotest` package helps write io.Reader and test that an application is tolerant to errors.
+
+[[Source code]](11-testing/88-utility-package/iotest/main_test.go)
 
 #### [Writing inaccurate benchmarks](https://teivah.medium.com/how-to-write-accurate-benchmarks-in-go-4266d7dd1a95) (#89)
 
@@ -875,19 +1021,27 @@ The `iotest` package helps write io.Reader and test that an application is toler
 
   Use time methods to preserve the accuracy of a benchmark.
 
+[[Source code]](11-testing/89-benchmark/timer/main_test.go)
+
 * Making wrong assumptions about micro-benchmarks
 
   Increasing `benchtime` or using tools such as `benchstat` can be helpful when dealing with micro-benchmarks.
 
   Be careful with the results of a micro-benchmark if the system that ends up running the application is different from the one running the micro-benchmark.
 
+[[Source code]](11-testing/89-benchmark/wrong-assumptions/main_test.go)
+
 * Not being careful about compiler optimizations
 
   Make sure the function under test leads to a side effect, to prevent compiler optimizations from fooling you about the benchmark results.
+ 
+[[Source code]](11-testing/89-benchmark/compiler-optimizations/main_test.go)
 
 * Being fooled by the observer effect
 
   To prevent the observer effect, force a benchmark to re-create the data used by a CPU-bound function.
+
+[[Source code]](11-testing/89-benchmark/observer-effect/main_test.go)
 
 #### Not exploring all the Go testing features (#90)
 
@@ -899,13 +1053,19 @@ The `iotest` package helps write io.Reader and test that an application is toler
 
   Place unit tests in a different package to enforce writing tests that focus on an exposed behavior, not internals.
 
+[[Source code]](11-testing/90-testing-features/different-package/main_test.go)
+
 * Utility functions
 
   Handling errors using the `*testing.T` variable instead of the classic `if err != nil` makes code shorter and easier to read.
 
+[[Source code]](11-testing/90-testing-features/utility-function/main_test.go)
+
 * Setup and teardown
 
   You can use setup and teardown functions to configure a complex environment, such as in the case of integration tests.
+
+[[Source code]](11-testing/90-testing-features/setup-teardown/main_test.go)
 
 #### Not using fuzzing (community mistake)
 
@@ -925,11 +1085,19 @@ Credits: [@jeromedoucet](https://github.com/jeromedoucet)
 
   Being conscious of the cache line concept is critical to understanding how to organize data in data-intensive applications. A CPU doesn’t fetch memory word by word; instead, it usually copies a memory block to a 64-byte cache line. To get the most out of each individual cache line, enforce spatial locality.
 
+[[Source code]](12-optimizations/91-cpu-caches/cache-line/)
+
 * Slice of structs vs. struct of slices
+
+TODO
+
+[[Source code]](12-optimizations/91-cpu-caches/slice-structs/)
 
 * Predictability
 
   Making code predictable for the CPU can also be an efficient way to optimize certain functions. For example, a unit or constant stride is predictable for the CPU, but a non-unit stride (for example, a linked list) isn’t predictable.
+
+[[Source code]](12-optimizations/91-cpu-caches/predictability/)
 
 * Cache placement policy
 
@@ -939,21 +1107,31 @@ Credits: [@jeromedoucet](https://github.com/jeromedoucet)
 
 Knowing that lower levels of CPU caches aren’t shared across all the cores helps avoid performance-degrading patterns such as false sharing while writing concurrency code. Sharing memory is an illusion.
 
+[[Source code]](12-optimizations/92-false-sharing/)
+
 #### Not taking into account instruction-level parallelism (#93)
 
 Use instruction-level parallelism (ILP) to optimize specific parts of your code to allow a CPU to execute as many parallel instructions as possible. Identifying data hazards is one of the main steps.
+
+[[Source code]](12-optimizations/93-instruction-level-parallelism/)
 
 #### Not being aware of data alignment (#94)
 
 You can avoid common mistakes by remembering that in Go, basic types are aligned with their own size. For example, keep in mind that reorganizing the fields of a struct by size in descending order can lead to more compact structs (less memory allocation and potentially a better spatial locality).
 
+[[Source code]](12-optimizations/94-data-alignment/)
+
 #### Not understanding stack vs. heap (#95)
 
 Understanding the fundamental differences between heap and stack should also be part of your core knowledge when optimizing a Go application. Stack allocations are almost free, whereas heap allocations are slower and rely on the GC to clean the memory.
 
+[[Source code]](12-optimizations/95-stack-heap/)
+
 #### Not knowing how to reduce allocations (API change, compiler optimizations, and `sync.Pool`) (#96)
 
 Reducing allocations is also an essential aspect of optimizing a Go application. This can be done in different ways, such as designing the API carefully to prevent sharing up, understanding the common Go compiler optimizations, and using `sync.Pool`.
+
+[[Source code]](12-optimizations/96-reduce-allocations/)
 
 #### Not relying on inlining (#97)
 
