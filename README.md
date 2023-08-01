@@ -67,7 +67,7 @@ This section contains a summary of the 100 mistakes in the book. Meanwhile, it's
   * [Interface on the producer side](#interface-on-the-producer-side-6)
   * [Returning interfaces](#returning-interfaces-7)
   * [`any` says nothing](#any-says-nothing-8)
-  * [Being confused about when to use generics](#being-confused-about-when-to-use-generics-9) ([Read the full excerpt 👀](https://teivah.medium.com/when-to-use-generics-in-go-36d49c1aeda))
+  * [Being confused about when to use generics](#being-confused-about-when-to-use-generics-9)
   * [Not being aware of the possible problems with type embedding](#not-being-aware-of-the-possible-problems-with-type-embedding-10)
   * [Not using the functional options pattern](#not-using-the-functional-options-pattern-11)
   * [Project misorganization](#project-misorganization-project-structure-and-package-organization-12)
@@ -301,7 +301,7 @@ The `any` type can be helpful if there is a genuine need for accepting or return
 
 [[Source code]](02-code-project-organization/8-any/main.go)
 
-#### [Being confused about when to use generics](https://teivah.medium.com/when-to-use-generics-in-go-36d49c1aeda) (#9)
+#### Being confused about when to use generics (#9)
 
 **TL;DR**: Relying on generics and type parameters can prevent writing boilerplate code to factor out elements or behaviors. However, do not use type parameters prematurely, but only when you see a concrete need for them. Otherwise, they introduce unnecessary abstractions and complexity.
 
