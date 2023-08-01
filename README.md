@@ -339,25 +339,119 @@ Using type embedding consciously by keeping these constraints in mind can help a
 
 TL;DR: To handle options conveniently and in an API-friendly manner, use the functional options pattern.
 
+Although there are different implementations with minor variations, the main idea is as follows:
+* An unexported struct holds the configuration: options.
+* Each option is a function that returns the same type: `type Option func(options *options)` error. For example, `WithPort` accepts an `int` argu- ment that represents the port and returns an `Option` type that represents how to update the `options` struct.
+
+![](res/options.png)
+
+```go
+type options struct {
+  port *int
+}
+
+type Option func(options *options) error
+
+func WithPort(port int) Option {
+  return func(options *options) error {
+    if port < 0 {
+    return errors.New("port should be positive")
+  }
+  options.port = &port
+  return nil
+  }
+}
+
+func NewServer(addr string, opts ...Option) ( *http.Server, error) { <1>
+  var options options <2>
+  for _, opt := range opts { <3>
+    err := opt(&options) <4>
+    if err != nil {
+      return nil, err
+    }
+  }
+
+  // At this stage, the options struct is built and contains the config
+  // Therefore, we can implement our logic related to port configuration
+  var port int
+  if options.port == nil {
+    port = defaultHTTPPort
+  } else {
+      if *options.port == 0 {
+      port = randomPort()
+    } else {
+      port = *options.port
+    }
+  }
+
+  // ...
+}
+```
+
+The functional options pattern provides a handy and API-friendly way to handle options. Although the builder pattern can be a valid option, it has some minor downsides (having to pass a config struct that can be empty or a less handy way to handle error management) that tend to make the functional options pattern the idiomatic way to deal with these kind of problems in Go.
+
 #### Project misorganization (project structure and package organization) (#12)
 
-Following a layout such as project-layout can be a good way to start structuring Go projects, especially if you are looking for existing conventions to standardize a new project.
+TL;DR: Following a layout such as [project-layout](https://github.com/golang-standards/project-layout) can be a good way to start structuring Go projects, especially if you are looking for existing conventions to standardize a new project.
+
+Regarding the overall organization, there are different schools of thought. For example, should we organize our application by context or by layer? It depends on our preferences. We may favor grouping code per context (such as the customer con- text, the contract context, etc.), or we may favor following hexagonal architecture principles and group per technical layer. If the decision we make fits our use case, it cannot be a wrong decision, as long as we remain consistent with it.
+
+Regarding packages, there are multiple best practices that we should follow. First, we should avoid premature packaging because it might cause us to overcomplicate a project. Sometimes, it’s better to use a simple organization and have our project evolve when we understand what it contains rather than forcing ourselves to make the perfect structure up front.
+Granularity is another essential thing to consider. We should avoid having dozens of nano packages containing only one or two files. If we do, it’s because we have prob- ably missed some logical connections across these packages, making our project harder for readers to understand. Conversely, we should also avoid huge packages that dilute the meaning of a package name.
+
+Package naming should also be considered with care. As we all know (as develop- ers), naming is hard. To help clients understand a Go project, we should name our packages after what they provide, not what they contain. Also, naming should be meaningful. Therefore, a package name should be short, concise, expressive, and, by convention, a single lowercase word.
+
+Regarding what to export, the rule is pretty straightforward. We should minimize what should be exported as much as possible to reduce the coupling between pack- ages and keep unnecessary exported elements hidden. If we are unsure whether to export an element or not, we should default to not exporting it. Later, if we discover that we need to export it, we can adjust our code. Let’s also keep in mind some excep- tions, such as making fields exported so that a struct can be unmarshaled with encoding/json.
+
+Organizing a project isn’t straightforward, but following these rules should help make it easier to maintain. However, remember that consistency is also vital to ease maintainability. Therefore, let’s make sure that we keep things as consistent as possi- ble within a codebase.
 
 #### Creating utility packages (#13)
 
-Naming is a critical piece of application design. Creating packages such as `common`, `util`, and `shared` doesn’t bring much value for the reader. Refactor such packages into meaningful and specific package names.
+TL;DR: Naming is a critical piece of application design. Creating packages such as `common`, `util`, and `shared` doesn’t bring much value for the reader. Refactor such packages into meaningful and specific package names.
+
+Also, bear in mind that naming a package after what it provides and not what it contains can be an efficient way to increase its expressiveness.
 
 #### Ignoring package name collisions (#14)
 
-To avoid naming collisions between variables and packages, leading to confusion or perhaps even bugs, use unique names for each one. If this isn’t feasible, use an import alias to change the qualifier to differentiate the package name from the variable name, or think of a better name.
+TL;DR: To avoid naming collisions between variables and packages, leading to confusion or perhaps even bugs, use unique names for each one. If this isn’t feasible, use an import alias to change the qualifier to differentiate the package name from the variable name, or think of a better name.
+
+Package collisions occur when a variable name collides with an existing package name, preventing the package from being reused. We should prevent variable name collisions to avoid ambiguity. If we face a collision, we should either find another meaningful name or use an import alias.
 
 #### Missing code documentation (#15)
 
-To help clients and maintainers understand your code’s purpose, document exported elements.
+TL;DR: To help clients and maintainers understand your code’s purpose, document exported elements.
+
+Documentation is an important aspect of coding. It simplifies how clients can con- sume an API but can also help in maintaining a project. In Go, we should follow some rules to make our code idiomatic:
+
+First, every exported element must be documented. Whether it is a structure, an interface, a function, or something else, if it’s exported, it must be documented. The convention is to add comments, starting with the name of the exported element.
+
+As a convention, each comment should be a complete sentence that ends with punc- tuation. Also bear in mind that when we document a function (or a method), we should highlight what the function intends to do, not how it does it; this belongs to the core of a function and comments, not documentation. Furthermore, the docu- mentation should ideally provide enough information that the consumer does not have to look at our code to understand how to use an exported element.
+
+When it comes to documenting a variable or a constant, we might be interested in conveying two aspects: its purpose and its content. The former should live as code documentation to be useful for external clients. The latter, though, shouldn’t neces- sarily be public.
+
+To help clients and maintainers understand a package’s scope, we should also doc- ument each package. The convention is to start the comment with `// Package` fol- lowed by the package name. The first line of a package comment should be concise. That’s because it will appear in the package. Then, we can provide all the infor- mation we need in the following lines.
+
+Documenting our code shouldn’t be a constraint. We should take the oppor- tunity to make sure it helps clients and maintainers to understand the purpose of our code.
 
 #### Not using linters (#16)
 
-To improve code quality and consistency, use linters and formatters.
+TL;DR: To improve code quality and consistency, use linters and formatters.
+
+A linter is an automatic tool to analyze code and catch errors. The scope of this section isn’t to give an exhaustive list of the existing linters; otherwise, it will become depre- cated pretty quickly. But we should understand and remember why linters are essen- tial for most Go projects.
+
+However, if you’re not a regular user of linters, here is a list that you may want to use daily:
+* https://golang.org/cmd/vet/—A standard Go analyzer
+* https://github.com/kisielk/errcheck—An error checker
+* https://github.com/fzipp/gocyclo—A cyclomatic complexity analyzer
+* https://github.com/jgautheron/goconst—A repeated string constants analyzer
+* 
+Besides linters, we should also use code formatters to fix code style. Here is a list of some code formatters for you to try:
+* https://golang.org/cmd/gofmt/—A standard Go code formatter
+* https://godoc.org/golang.org/x/tools/cmd/goimports—A standard Go imports formatter
+* 
+Meanwhile, we should also look at golangci-lint (https://github.com/golangci/ golangci-lint). It’s a linting tool that provides a facade on top of many useful linters and formatters. Also, it allows running the linters in parallel to improve analysis speed, which is quite handy.
+
+Linters and formatters are a powerful way to improve the quality and consistency of our codebase. Let’s take the time to understand which one we should use and make sure we automate their execution (such as a CI or Git precommit hook).
 
 ### Data Types ([PDF chapter](chapter-3.pdf))
 
