@@ -175,47 +175,169 @@ This section contains a summary of the 100 mistakes in the book. Meanwhile, it's
 
 #### Unintended variable shadowing (#1)
 
-Avoiding shadowed variables can help prevent mistakes like referencing the wrong variable or confusing readers.
+TL;DR: Avoiding shadowed variables can help prevent mistakes like referencing the wrong variable or confusing readers.
+
+Variable shadowing occurs when a variable name is redeclared in an inner block, but this practice is prone to mistakes. Imposing a rule to forbid shadowed variables depends on personal taste. For example, sometimes it can be convenient to reuse an existing variable name like `err` for errors. Yet, in general, we should remain cautious because we now know that we can face a scenario where the code compiles, but the variable that receives the value is not the one expected.
 
 #### Unnecessary nested code (#2)
 
-Avoiding nested levels and keeping the happy path aligned on the left makes building a mental code model easier.
+TL;DR: Avoiding nested levels and keeping the happy path aligned on the left makes building a mental code model easier.
+
+In general, the more nested levels a function requires, the more complex it is to read and understand. Let’s see some different applications of this rule to optimize our code for readability:
+
+* When an `if` block returns, we should omit the `else` block in all cases. For exam- ple, we shouldn’t write:
+
+  ```go
+  if foo() {
+      // ...
+      return true
+  } else {
+      // ...
+  }
+  ```
+
+  Instead, we omit the `else` block like this:
+
+  ```go
+  if foo() {
+      // ...
+      return true
+  }
+  // ...
+  ```
+* We can also follow this logic with a non-happy path:
+
+  ```go
+  if s != "" {
+      // ...
+  } else {
+      return errors.New("empty string")
+  }
+  ```
+
+  Here, an empty `s` represents the non-happy path. Hence, we should flip the
+  condition like so:
+
+  ```go
+  if s == "" {
+      return errors.New("empty string")
+  }
+  // ...
+  ```
+
+Writing readable code is an important challenge for every developer. Striving to reduce the number of nested blocks, aligning the happy path on the left, and return- ing as early as possible are concrete means to improve our code’s readability.
 
 #### Misusing init functions (#3)
 
-When initializing variables, remember that init functions have limited error handling and make state handling and testing more complex. In most cases, initializations should be handled as specific functions.
+TL;DR: When initializing variables, remember that init functions have limited error handling and make state handling and testing more complex. In most cases, initializations should be handled as specific functions.
+
+An init function is a function used to initialize the state of an application. It takes no arguments and returns no result (a `func()` function). When a package is initialized, all the constant and variable declarations in the package are evaluated. Then, the init functions are executed.
+
+Init functions can lead to some issues:
+* They can limit error management.
+* They can complicate how to implement tests (for example, an external dependency must be set up, which may not be necessary for the scope of unit tests).
+* If the initialization requires us to set a state, that has to be done through global variables.
+
+We should be cautious with init functions. They can be helpful in some situations, however, such as defining static configuration. Otherwise, and in most cases, we should handle initializations through ad hoc functions.
 
 #### Overusing getters and setters (#4)
 
-Forcing the use of getters and setters isn’t idiomatic in Go. Being pragmatic and finding the right balance between efficiency and blindly following certain idioms should be the way to go.
+TL;DR: Forcing the use of getters and setters isn’t idiomatic in Go. Being pragmatic and finding the right balance between efficiency and blindly following certain idioms should be the way to go.
+
+Data encapsulation refers to hiding the values or state of an object. Getters and setters are means to enable encapsulation by providing exported methods on top of unexported object fields.
+
+In Go, there is no automatic support for getters and setters as we see in some lan- guages. It is also considered neither mandatory nor idiomatic to use getters and set- ters to access struct fields. We shouldn’t overwhelm our code with getters and setters on structs if they don’t bring any value. We should be pragmatic and strive to find the right bal- ance between efficiency and following idioms that are sometimes considered indisput- able in other programming paradigms.
+
+Remember that Go is a unique language designed for many characteristics, includ- ing simplicity. However, if we find a need for getters and setters or, as mentioned, fore- see a future need while guaranteeing forward compatibility, there’s nothing wrong with using them.
 
 #### Interface pollution (#5)
 
-Abstractions should be discovered, not created. To prevent unnecessary complexity, create an interface when you need it and not when you foresee needing it, or if you can at least prove the abstraction to be a valid one.
+TL;DR: Abstractions should be discovered, not created. To prevent unnecessary complexity, create an interface when you need it and not when you foresee needing it, or if you can at least prove the abstraction to be a valid one.
+
+An interface provides a way to specify the behavior of an object. We use interfaces to create common abstractions that multiple objects can implement. What makes Go interfaces so different is that they are satisfied implicitly. There is no explicit keyword like `implements` to mark that an object `X` implements interface `Y`.
+
+In general, we can define three main use cases where interfaces are generally considered as bringing value: factoring out a common behavior, creating some decoupling, and restricting a type to a certain behavior. Yet, this list isn't exhaustive and will also depend on the context we face.
+
+In many occasions, interfaces are made to create abstractions. And the main caveat when programming meets abstractions is remembering that abstractions should be dis- covered, not created. What does this mean? It means we shouldn’t start creating abstrac- tions in our code if there is no immediate reason to do so. We shouldn’t design with interfaces but wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it.
+What’s the main problem if we overuse interfaces? The answer is that they make the code flow more complex. Adding a useless level of indirection doesn’t bring any value; it creates a worthless abstraction making the code more difficult to read, under- stand, and reason about. If we don’t have a strong reason for adding an interface and it’s unclear how an interface makes a code better, we should challenge this interface’s purpose. Why not call the implementation directly?
+
+We should be cautious when creating abstractions in our code (abstrac- tions should be discovered, not created). It’s common for us, software developers, to overengineer our code by trying to guess what the perfect level of abstraction is, based on what we think we might need later. This process should be avoided because, in most cases, it pollutes our code with unnecessary abstractions, making it more com- plex to read.
+
+> Don’t design with interfaces, discover them.
+
+–  _Rob Pike_
+
+Let’s not try to solve a problem abstractly but solve what has to be solved now. Last, but not least, if it’s unclear how an interface makes the code better, we should probably consider removing it to make our code simpler.
 
 #### Interface on the producer side (#6)
 
-Keeping interfaces on the client side avoids unnecessary abstractions.
+TL;DR: Keeping interfaces on the client side avoids unnecessary abstractions.
+
+Interfaces are satisfied implicitly in Go, which tends to be a game- changer compared to languages with an explicit implementation. In most cases, the approach to follow is similar to what we described in the previous section: _abstractions should be discovered, not created_. This means that it’s not up to the producer to force a given abstraction for all the clients. Instead, it’s up to the client to decide whether it needs some form of abstraction and then determine the best abstraction level for its needs.
+
+An interface should live on the consumer side in most cases. However, in particu- lar contexts (for example, when we know—not foresee—that an abstraction will be helpful for consumers), we may want to have it on the producer side. If we do, we should strive to keep it as minimal as possible, increasing its reusability potential and making it more easily composable.
 
 #### Returning interfaces (#7)
 
-To prevent being restricted in terms of flexibility, a function shouldn’t return interfaces but concrete implementations in most cases. Conversely, a function should accept interfaces whenever possible.
+TL;DR: To prevent being restricted in terms of flexibility, a function shouldn’t return interfaces but concrete implementations in most cases. Conversely, a function should accept interfaces whenever possible.
+
+In most cases, we shouldn’t return interfaces but concrete implementa- tions. Otherwise, it can make our design more complex due to package dependencies and can restrict flexibility because all the clients would have to rely on the same abstraction. Again, the conclusion is similar to the previous sections: if we know (not foresee) that an abstraction will be helpful for clients, we can consider returning an interface. Otherwise, we shouldn’t force abstractions; they should be discovered by cli- ents. If a client needs to abstract an implementation for whatever reason, it can still do that on the client’s side.
 
 #### `any` says nothing (#8)
 
-Only use `any` if you need to accept or return any possible type, such as `json.Marshal`. Otherwise, `any` doesn’t provide meaningful information and can lead to compile-time issues by allowing a caller to call methods with any data type.
+TL;DR: Only use `any` if you need to accept or return any possible type, such as `json.Marshal`. Otherwise, `any` doesn’t provide meaningful information and can lead to compile-time issues by allowing a caller to call methods with any data type.
+
+The `any` type can be helpful if there is a genuine need for accepting or returning any possible type (for instance, when it comes to marshaling or formatting). In gen- eral, we should avoid overgeneralizing the code we write at all costs. Perhaps a little bit of duplicated code might occasionally be better if it improves other aspects such as code expressiveness.
 
 #### [Being confused about when to use generics](https://teivah.medium.com/when-to-use-generics-in-go-36d49c1aeda) (#9)
 
-Relying on generics and type parameters can prevent writing boilerplate code to factor out elements or behaviors. However, do not use type parameters prematurely, but only when you see a concrete need for them. Otherwise, they introduce unnecessary abstractions and complexity.
+TL;DR: Relying on generics and type parameters can prevent writing boilerplate code to factor out elements or behaviors. However, do not use type parameters prematurely, but only when you see a concrete need for them. Otherwise, they introduce unnecessary abstractions and complexity.
+
+
+<details>
+
+<summary>[Company] Remote (USA) - $96,000 to $120,000 a year</summary>
+
+# TODO
+
+foo
+
+</details>
 
 #### Not being aware of the possible problems with type embedding (#10)
 
-Using type embedding can also help avoid boilerplate code; however, ensure that doing so doesn’t lead to visibility issues where some fields should have remained hidden.
+TL;DR: Using type embedding can also help avoid boilerplate code; however, ensure that doing so doesn’t lead to visibility issues where some fields should have remained hidden.
+
+When creating a struct, Go offers the option to embed types. But this can sometimes lead to unexpected behaviors if we don’t understand all the implications of type embedding. Throughout this section, we look at how to embed types, what these bring, and the possible issues.
+
+In Go, a struct field is called embedded if it’s declared without a name. For example,
+
+```cgo
+type Foo struct {
+    Bar // Embedded field
+}
+
+type Bar struct {
+    Baz int
+}
+```
+
+In the `Foo` struct, the `Bar` type is declared without an associated name; hence, it’s an embedded field.
+
+We use embedding to promote the fields and methods of an embedded type. Because Bar contains a Baz field, this field is 
+promoted to `Foo`. There- fore, Baz becomes available from Foo.
+
+What can we say about type embedding? First, let’s note that it’s rarely a necessity, and it means that whatever the use case, we can probably solve it as well with- out type embedding. Type embedding is mainly used for convenience: in most cases, to promote behaviors.
+
+If we decide to use type embedding, we need to keep two main constraints in mind:
+* It shouldn’t be used solely as some syntactic sugar to simplify accessing a field (such as `Foo.Baz()` instead of `Foo.Bar.Baz()`). If this is the only rationale, let’s not embed the inner type and use a field instead.
+* It shouldn’t promote data (fields) or a behavior (methods) we want to hide from the outside: for example, if it allows clients to access a locking behavior that should remain private to the struct.
+
+Using type embedding consciously by keeping these constraints in mind can help avoid boilerplate code with additional forwarding methods. However, let’s make sure we don’t do it solely for cosmetics and not promote elements that should remain hidden.
 
 #### Not using the functional options pattern (#11)
 
-To handle options conveniently and in an API-friendly manner, use the functional options pattern.
+TL;DR: To handle options conveniently and in an API-friendly manner, use the functional options pattern.
 
 #### Project misorganization (project structure and package organization) (#12)
 
