@@ -185,7 +185,7 @@ TL;DR: Avoiding nested levels and keeping the happy path aligned on the left mak
 
 In general, the more nested levels a function requires, the more complex it is to read and understand. Let’s see some different applications of this rule to optimize our code for readability:
 
-* When an `if` block returns, we should omit the `else` block in all cases. For exam- ple, we shouldn’t write:
+* When an `if` block returns, we should omit the `else` block in all cases. For example, we shouldn’t write:
 
   ```go
   if foo() {
@@ -225,7 +225,7 @@ In general, the more nested levels a function requires, the more complex it is t
   // ...
   ```
 
-Writing readable code is an important challenge for every developer. Striving to reduce the number of nested blocks, aligning the happy path on the left, and return- ing as early as possible are concrete means to improve our code’s readability.
+Writing readable code is an important challenge for every developer. Striving to reduce the number of nested blocks, aligning the happy path on the left, and returning as early as possible are concrete means to improve our code’s readability.
 
 #### Misusing init functions (#3)
 
@@ -246,9 +246,9 @@ TL;DR: Forcing the use of getters and setters isn’t idiomatic in Go. Being pra
 
 Data encapsulation refers to hiding the values or state of an object. Getters and setters are means to enable encapsulation by providing exported methods on top of unexported object fields.
 
-In Go, there is no automatic support for getters and setters as we see in some lan- guages. It is also considered neither mandatory nor idiomatic to use getters and set- ters to access struct fields. We shouldn’t overwhelm our code with getters and setters on structs if they don’t bring any value. We should be pragmatic and strive to find the right bal- ance between efficiency and following idioms that are sometimes considered indisput- able in other programming paradigms.
+In Go, there is no automatic support for getters and setters as we see in some languages. It is also considered neither mandatory nor idiomatic to use getters and setters to access struct fields. We shouldn’t overwhelm our code with getters and setters on structs if they don’t bring any value. We should be pragmatic and strive to find the right balance between efficiency and following idioms that are sometimes considered indisputable in other programming paradigms.
 
-Remember that Go is a unique language designed for many characteristics, includ- ing simplicity. However, if we find a need for getters and setters or, as mentioned, fore- see a future need while guaranteeing forward compatibility, there’s nothing wrong with using them.
+Remember that Go is a unique language designed for many characteristics, including simplicity. However, if we find a need for getters and setters or, as mentioned, foresee a future need while guaranteeing forward compatibility, there’s nothing wrong with using them.
 
 #### Interface pollution (#5)
 
@@ -258,10 +258,10 @@ An interface provides a way to specify the behavior of an object. We use interfa
 
 In general, we can define three main use cases where interfaces are generally considered as bringing value: factoring out a common behavior, creating some decoupling, and restricting a type to a certain behavior. Yet, this list isn't exhaustive and will also depend on the context we face.
 
-In many occasions, interfaces are made to create abstractions. And the main caveat when programming meets abstractions is remembering that abstractions should be dis- covered, not created. What does this mean? It means we shouldn’t start creating abstrac- tions in our code if there is no immediate reason to do so. We shouldn’t design with interfaces but wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it.
-What’s the main problem if we overuse interfaces? The answer is that they make the code flow more complex. Adding a useless level of indirection doesn’t bring any value; it creates a worthless abstraction making the code more difficult to read, under- stand, and reason about. If we don’t have a strong reason for adding an interface and it’s unclear how an interface makes a code better, we should challenge this interface’s purpose. Why not call the implementation directly?
+In many occasions, interfaces are made to create abstractions. And the main caveat when programming meets abstractions is remembering that abstractions should be discovered, not created. What does this mean? It means we shouldn’t start creating abstractions in our code if there is no immediate reason to do so. We shouldn’t design with interfaces but wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it.
+What’s the main problem if we overuse interfaces? The answer is that they make the code flow more complex. Adding a useless level of indirection doesn’t bring any value; it creates a worthless abstraction making the code more difficult to read, understand, and reason about. If we don’t have a strong reason for adding an interface and it’s unclear how an interface makes a code better, we should challenge this interface’s purpose. Why not call the implementation directly?
 
-We should be cautious when creating abstractions in our code (abstrac- tions should be discovered, not created). It’s common for us, software developers, to overengineer our code by trying to guess what the perfect level of abstraction is, based on what we think we might need later. This process should be avoided because, in most cases, it pollutes our code with unnecessary abstractions, making it more com- plex to read.
+We should be cautious when creating abstractions in our code (abstractions should be discovered, not created). It’s common for us, software developers, to overengineer our code by trying to guess what the perfect level of abstraction is, based on what we think we might need later. This process should be avoided because, in most cases, it pollutes our code with unnecessary abstractions, making it more complex to read.
 
 > Don’t design with interfaces, discover them.
 
@@ -273,21 +273,21 @@ Let’s not try to solve a problem abstractly but solve what has to be solved no
 
 TL;DR: Keeping interfaces on the client side avoids unnecessary abstractions.
 
-Interfaces are satisfied implicitly in Go, which tends to be a game- changer compared to languages with an explicit implementation. In most cases, the approach to follow is similar to what we described in the previous section: _abstractions should be discovered, not created_. This means that it’s not up to the producer to force a given abstraction for all the clients. Instead, it’s up to the client to decide whether it needs some form of abstraction and then determine the best abstraction level for its needs.
+Interfaces are satisfied implicitly in Go, which tends to be a gamechanger compared to languages with an explicit implementation. In most cases, the approach to follow is similar to what we described in the previous section: _abstractions should be discovered, not created_. This means that it’s not up to the producer to force a given abstraction for all the clients. Instead, it’s up to the client to decide whether it needs some form of abstraction and then determine the best abstraction level for its needs.
 
-An interface should live on the consumer side in most cases. However, in particu- lar contexts (for example, when we know—not foresee—that an abstraction will be helpful for consumers), we may want to have it on the producer side. If we do, we should strive to keep it as minimal as possible, increasing its reusability potential and making it more easily composable.
+An interface should live on the consumer side in most cases. However, in particular contexts (for example, when we know—not foresee—that an abstraction will be helpful for consumers), we may want to have it on the producer side. If we do, we should strive to keep it as minimal as possible, increasing its reusability potential and making it more easily composable.
 
 #### Returning interfaces (#7)
 
 TL;DR: To prevent being restricted in terms of flexibility, a function shouldn’t return interfaces but concrete implementations in most cases. Conversely, a function should accept interfaces whenever possible.
 
-In most cases, we shouldn’t return interfaces but concrete implementa- tions. Otherwise, it can make our design more complex due to package dependencies and can restrict flexibility because all the clients would have to rely on the same abstraction. Again, the conclusion is similar to the previous sections: if we know (not foresee) that an abstraction will be helpful for clients, we can consider returning an interface. Otherwise, we shouldn’t force abstractions; they should be discovered by cli- ents. If a client needs to abstract an implementation for whatever reason, it can still do that on the client’s side.
+In most cases, we shouldn’t return interfaces but concrete implementations. Otherwise, it can make our design more complex due to package dependencies and can restrict flexibility because all the clients would have to rely on the same abstraction. Again, the conclusion is similar to the previous sections: if we know (not foresee) that an abstraction will be helpful for clients, we can consider returning an interface. Otherwise, we shouldn’t force abstractions; they should be discovered by clients. If a client needs to abstract an implementation for whatever reason, it can still do that on the client’s side.
 
 #### `any` says nothing (#8)
 
 TL;DR: Only use `any` if you need to accept or return any possible type, such as `json.Marshal`. Otherwise, `any` doesn’t provide meaningful information and can lead to compile-time issues by allowing a caller to call methods with any data type.
 
-The `any` type can be helpful if there is a genuine need for accepting or returning any possible type (for instance, when it comes to marshaling or formatting). In gen- eral, we should avoid overgeneralizing the code we write at all costs. Perhaps a little bit of duplicated code might occasionally be better if it improves other aspects such as code expressiveness.
+The `any` type can be helpful if there is a genuine need for accepting or returning any possible type (for instance, when it comes to marshaling or formatting). In general, we should avoid overgeneralizing the code we write at all costs. Perhaps a little bit of duplicated code might occasionally be better if it improves other aspects such as code expressiveness.
 
 #### [Being confused about when to use generics](https://teivah.medium.com/when-to-use-generics-in-go-36d49c1aeda) (#9)
 
@@ -296,11 +296,230 @@ TL;DR: Relying on generics and type parameters can prevent writing boilerplate c
 
 <details>
 
-<summary>[Company] Remote (USA) - $96,000 to $120,000 a year</summary>
+<summary>Read the whole section</summary>
 
-# TODO
+Generics is a fresh addition to the language. In a nutshell, it allows writing code with types that can be specified later and instantiated when needed. However, it can be pretty easy to be confused about when to use generics and when not to. Throughout this post, we will describe the concept of generics in Go and then delve into common use and misuses.
 
-foo
+## Concepts
+
+Consider the following function that extracts all the keys from a `map[string]int` type:
+
+```go
+func getKeys(m map[string]int) []string {
+    var keys []string
+    for k := range m {
+        keys = append(keys, k)
+    }
+    return keys
+}
+```
+
+What if we would like to use a similar feature for another map type such as a `map[int]string`? Before generics, Go developers had a couple of options: using code generation, reflection, or duplicating code.
+
+For example, we could write two functions, one for each map type, or even try to extend `getKeys` to accept different map types:
+
+```go
+func getKeys(m any) ([]any, error) {
+    switch t := m.(type) {
+    default:
+        return nil, fmt.Errorf("unknown type: %T", t)
+    case map[string]int:
+        var keys []any
+        for k := range t {
+            keys = append(keys, k)
+        }
+        return keys, nil
+    case map[int]string:
+        // Copy the extraction logic
+    }
+}
+```
+
+We can start noticing a couple of issues:
+
+* First, it increases boilerplate code. Indeed, whenever we want to add a case, it will require duplicating the `range` loop.
+*  Meanwhile, the function now accepts an empty interface, which means we are losing some of the benefits of Go being a typed language. Indeed, checking whether a type is supported is done at runtime instead of compile-time. Hence, we also need to return an error if the provided type is unknown.
+* Last but not least, as the key type can be either `int` or `string`, we are obliged to return a slice of empty interfaces to factor out key types. This approach increases the effort on the caller-side as the client may also have to perform a type check of the keys or extra conversion.
+
+Thanks to generics, we can now refactor this code using type parameters.
+
+Type parameters are generic types we can use with functions and types. For example, the following function accepts a type parameter:
+
+```go
+func foo[T any](t T) {
+    // ...
+}
+```
+
+When calling `foo`, we will pass a type argument of any type. Passing a type argument is called instantiation because the work is done at compile time which keeps type safety as part of the core language features and avoids runtime overheads.
+
+Let’s get back to the `getKeys` function and use type parameters to write a generic version that would accept any kind of map:
+
+```go
+func getKeys[K comparable, V any](m map[K]V) []K { <1>
+  var keys []K <2>
+  for k := range m {
+    keys = append(keys, k)
+  }
+  return keys
+}
+```
+
+To handle the map, we defined two kinds of type parameters. First, the values can be of any type: `V any`. However, in Go, the map keys can’t be of any type. For example, we cannot use slices:
+
+```go
+var m map[[]byte]int
+```
+
+This code leads to a compilation error: `invalid map key type []byte`. Therefore, instead of accepting any key type, we are obliged to restrict type arguments so that the key type meets specific requirements. Here, being comparable (we can use `==` or `!=`). Hence, we defined `K` as `comparable` instead of `a``ny`.
+
+Restricting type arguments to match specific requirements is called a constraint. A constraint is an interface type that can contain:
+
+* A set of behaviors (methods)
+* But also arbitrary type
+
+Let’s see a concrete example for the latter. Imagine we don’t want to accept any `comparable` type for map key type. For instance, we would like to restrict it to either `int` or `string` types. We can define a custom constraint this way:
+
+```go
+type customConstraint interface {
+   ~int | ~string // Define a custom type that will restrict types to int and string
+}
+
+// Change the type parameter K to be custom
+func getKeys[K customConstraint, V any](m map[K]V) []K {
+   // Same implementation
+}
+```
+
+First, we define a `customConstraint` interface to restrict the types to be either `int` or `string` using the union operator `|` (we will discuss the use of `~` a bit later). Then, `K` is now a `customConstraint` instead of a `comparable` as before.
+
+Now, the signature of `getKeys` enforces that we can call it with a map of any value type, but the key type has to be an `int` or a `string`. For example, on the caller-side:
+
+```go
+m = map[string]int{
+   "one":   1,
+   "two":   2,
+   "three": 3,
+}
+keys := getKeys(m)
+```
+
+Note that Go can infer that `getKeys` is called with a `string` type argument. The previous call was similar to this:
+
+```go
+keys := getKeys[string](m)
+```
+
+---
+**NOTE:** What’s the difference between a constraint using `~int` or `int`? Using `int` restricts it to that type, whereas `~int` restricts all the types whose underlying type is an `int`. 
+
+To illustrate it, let’s imagine a constraint where we would like to restrict a type to any `int` type implementing the `String() string` method:
+
+```go
+type customConstraint interface {
+   ~int
+   String() string
+}
+```
+
+Using this constraint will restrict type arguments to custom types like this one:
+
+```cgo
+type customInt int
+
+func (i customInt) String() string {
+   return strconv.Itoa(int(i))
+}
+```
+
+As `customInt` is an `int` and implements the `String() string` method, the `customInt` type satisfies the constraint defined.
+
+However, if we change the constraint to contain an `int` instead of an `~int`, using `customInt` would lead to a compilation error because the `int` type doesn’t implement `String() string`.
+
+---
+
+![](https://miro.medium.com/v2/resize:fit:933/1*rr0c0YUOUfu1xpY_Rjo91g.png)
+
+Let’s also note the `constraints` package contains a set of common constraints such as `Signed` that includes all the signed integer types. Let’s ensure that a constraint doesn’t already exist in this package before creating a new one.
+
+So far, we have discussed examples using generics for functions. However, we can also use generics with data structures.
+
+For example, we will create a linked list containing values of any type. Meanwhile, we will write an `Add` method to append a node:
+
+```cgo
+type Node[T any] struct { // Use type parameter
+   Val  T
+   next *Node[T]
+}
+
+func (n *Node[T]) Add(next *Node[T]) { // Instantiate type receiver
+   n.next = next
+}
+```
+
+We use type parameters to define `T` and use both fields in `Node`. Regarding the method, the receiver is instantiated. Indeed, because `Node` is generic, it has to follow also the type parameter defined.
+
+One last thing to note about type parameters: they can’t be used on methods, only on functions. For example, the following method wouldn’t compile:
+
+```go
+type Foo struct {}
+
+func (Foo) bar[T any](t T) {}
+```
+
+```
+./main.go:29:15: methods cannot have type parameters
+```
+
+Now, let’s delve into concrete cases where we should and shouldn’t use generics.
+
+## Common uses and misuses
+
+So when are generics useful? Let’s discuss a couple of common uses where generics **are** recommended:
+
+* Data structures. For example, we can use generics to factor out the element type if we implement a binary tree, a linked list, or a heap.
+* Functions working with slices, maps, and channels of any type. For example, a function to merge two channels would work with any channel type. Hence, we could use type parameters to factor out the channel type:
+
+  ```cgo
+  func merge[T any](ch1, ch2 <-chan T) <-chan T {
+      // ...
+  }
+  ```
+
+* Meanwhile, instead of factoring out a type, we can factor out behaviors. For example, the `sort` package contains functions to sort different slice types such as `sort.Ints` or `sort.Float64s`. Using type parameters, we can factor out the sorting behaviors that rely on three methods, `Len`, `Less`, and `Swap`:
+
+  ```go
+  type sliceFn[T any] struct { // Use type parameter
+     s       []T
+     compare func(T, T) bool // Compare two T elements
+  }
+
+  func (s sliceFn[T]) Len() int           { return len(s.s) }
+  func (s sliceFn[T]) Less(i, j int) bool { return s.compare(s.s[i], s.s[j]) }
+  func (s sliceFn[T]) Swap(i, j int)      { s.s[i], s.s[j] = s.s[j], s.s[i] }
+  ```
+
+Conversely, when is it recommended **not** to use generics?
+
+* When just calling a method of the type argument. For example, consider a function that receives an `io.Writer` and call the `Write` method:
+
+  ```cgo
+  func foo[T io.Writer](w T) {
+     b := getBytes()
+     _, _ = w.Write(b)
+  }
+  ```
+
+* When it makes our code more complex. Generics are never mandatory, and as Go developers, we have been able to live without them for more than a decade. If writing generic functions or structures we figure out that it doesn’t make our code clearer, we should probably reconsider our decision for this particular use case.
+
+## Conclusion
+
+Though generics can be very helpful in particular conditions, we should be cautious about when to use them and not use them.
+
+In general, when we want to answer when not to use generics, we can find similarities with when not to use interfaces. Indeed, generics introduce a form of abstraction, and we have to remember that unnecessary abstractions introduce complexity.
+
+Let’s not pollute our code with needless abstractions, and let’s focus on solving concrete problems for now. It means that we shouldn’t use type parameters prematurely. Let’s wait until we are about to write boilerplate code to consider using generics.
+
 
 </details>
 
@@ -325,9 +544,9 @@ type Bar struct {
 In the `Foo` struct, the `Bar` type is declared without an associated name; hence, it’s an embedded field.
 
 We use embedding to promote the fields and methods of an embedded type. Because Bar contains a Baz field, this field is 
-promoted to `Foo`. There- fore, Baz becomes available from Foo.
+promoted to `Foo`. Therefore, Baz becomes available from Foo.
 
-What can we say about type embedding? First, let’s note that it’s rarely a necessity, and it means that whatever the use case, we can probably solve it as well with- out type embedding. Type embedding is mainly used for convenience: in most cases, to promote behaviors.
+What can we say about type embedding? First, let’s note that it’s rarely a necessity, and it means that whatever the use case, we can probably solve it as well without type embedding. Type embedding is mainly used for convenience: in most cases, to promote behaviors.
 
 If we decide to use type embedding, we need to keep two main constraints in mind:
 * It shouldn’t be used solely as some syntactic sugar to simplify accessing a field (such as `Foo.Baz()` instead of `Foo.Bar.Baz()`). If this is the only rationale, let’s not embed the inner type and use a field instead.
@@ -341,7 +560,7 @@ TL;DR: To handle options conveniently and in an API-friendly manner, use the fun
 
 Although there are different implementations with minor variations, the main idea is as follows:
 * An unexported struct holds the configuration: options.
-* Each option is a function that returns the same type: `type Option func(options *options)` error. For example, `WithPort` accepts an `int` argu- ment that represents the port and returns an `Option` type that represents how to update the `options` struct.
+* Each option is a function that returns the same type: `type Option func(options *options)` error. For example, `WithPort` accepts an `int` argument that represents the port and returns an `Option` type that represents how to update the `options` struct.
 
 ![](res/options.png)
 
@@ -394,16 +613,16 @@ The functional options pattern provides a handy and API-friendly way to handle o
 
 TL;DR: Following a layout such as [project-layout](https://github.com/golang-standards/project-layout) can be a good way to start structuring Go projects, especially if you are looking for existing conventions to standardize a new project.
 
-Regarding the overall organization, there are different schools of thought. For example, should we organize our application by context or by layer? It depends on our preferences. We may favor grouping code per context (such as the customer con- text, the contract context, etc.), or we may favor following hexagonal architecture principles and group per technical layer. If the decision we make fits our use case, it cannot be a wrong decision, as long as we remain consistent with it.
+Regarding the overall organization, there are different schools of thought. For example, should we organize our application by context or by layer? It depends on our preferences. We may favor grouping code per context (such as the customer context, the contract context, etc.), or we may favor following hexagonal architecture principles and group per technical layer. If the decision we make fits our use case, it cannot be a wrong decision, as long as we remain consistent with it.
 
 Regarding packages, there are multiple best practices that we should follow. First, we should avoid premature packaging because it might cause us to overcomplicate a project. Sometimes, it’s better to use a simple organization and have our project evolve when we understand what it contains rather than forcing ourselves to make the perfect structure up front.
-Granularity is another essential thing to consider. We should avoid having dozens of nano packages containing only one or two files. If we do, it’s because we have prob- ably missed some logical connections across these packages, making our project harder for readers to understand. Conversely, we should also avoid huge packages that dilute the meaning of a package name.
+Granularity is another essential thing to consider. We should avoid having dozens of nano packages containing only one or two files. If we do, it’s because we have probably missed some logical connections across these packages, making our project harder for readers to understand. Conversely, we should also avoid huge packages that dilute the meaning of a package name.
 
-Package naming should also be considered with care. As we all know (as develop- ers), naming is hard. To help clients understand a Go project, we should name our packages after what they provide, not what they contain. Also, naming should be meaningful. Therefore, a package name should be short, concise, expressive, and, by convention, a single lowercase word.
+Package naming should also be considered with care. As we all know (as developers), naming is hard. To help clients understand a Go project, we should name our packages after what they provide, not what they contain. Also, naming should be meaningful. Therefore, a package name should be short, concise, expressive, and, by convention, a single lowercase word.
 
-Regarding what to export, the rule is pretty straightforward. We should minimize what should be exported as much as possible to reduce the coupling between pack- ages and keep unnecessary exported elements hidden. If we are unsure whether to export an element or not, we should default to not exporting it. Later, if we discover that we need to export it, we can adjust our code. Let’s also keep in mind some excep- tions, such as making fields exported so that a struct can be unmarshaled with encoding/json.
+Regarding what to export, the rule is pretty straightforward. We should minimize what should be exported as much as possible to reduce the coupling between packages and keep unnecessary exported elements hidden. If we are unsure whether to export an element or not, we should default to not exporting it. Later, if we discover that we need to export it, we can adjust our code. Let’s also keep in mind some exceptions, such as making fields exported so that a struct can be unmarshaled with encoding/json.
 
-Organizing a project isn’t straightforward, but following these rules should help make it easier to maintain. However, remember that consistency is also vital to ease maintainability. Therefore, let’s make sure that we keep things as consistent as possi- ble within a codebase.
+Organizing a project isn’t straightforward, but following these rules should help make it easier to maintain. However, remember that consistency is also vital to ease maintainability. Therefore, let’s make sure that we keep things as consistent as possible within a codebase.
 
 #### Creating utility packages (#13)
 
@@ -421,23 +640,23 @@ Package collisions occur when a variable name collides with an existing package 
 
 TL;DR: To help clients and maintainers understand your code’s purpose, document exported elements.
 
-Documentation is an important aspect of coding. It simplifies how clients can con- sume an API but can also help in maintaining a project. In Go, we should follow some rules to make our code idiomatic:
+Documentation is an important aspect of coding. It simplifies how clients can consume an API but can also help in maintaining a project. In Go, we should follow some rules to make our code idiomatic:
 
 First, every exported element must be documented. Whether it is a structure, an interface, a function, or something else, if it’s exported, it must be documented. The convention is to add comments, starting with the name of the exported element.
 
-As a convention, each comment should be a complete sentence that ends with punc- tuation. Also bear in mind that when we document a function (or a method), we should highlight what the function intends to do, not how it does it; this belongs to the core of a function and comments, not documentation. Furthermore, the docu- mentation should ideally provide enough information that the consumer does not have to look at our code to understand how to use an exported element.
+As a convention, each comment should be a complete sentence that ends with punctuation. Also bear in mind that when we document a function (or a method), we should highlight what the function intends to do, not how it does it; this belongs to the core of a function and comments, not documentation. Furthermore, the documentation should ideally provide enough information that the consumer does not have to look at our code to understand how to use an exported element.
 
-When it comes to documenting a variable or a constant, we might be interested in conveying two aspects: its purpose and its content. The former should live as code documentation to be useful for external clients. The latter, though, shouldn’t neces- sarily be public.
+When it comes to documenting a variable or a constant, we might be interested in conveying two aspects: its purpose and its content. The former should live as code documentation to be useful for external clients. The latter, though, shouldn’t necessarily be public.
 
-To help clients and maintainers understand a package’s scope, we should also doc- ument each package. The convention is to start the comment with `// Package` fol- lowed by the package name. The first line of a package comment should be concise. That’s because it will appear in the package. Then, we can provide all the infor- mation we need in the following lines.
+To help clients and maintainers understand a package’s scope, we should also document each package. The convention is to start the comment with `// Package` followed by the package name. The first line of a package comment should be concise. That’s because it will appear in the package. Then, we can provide all the information we need in the following lines.
 
-Documenting our code shouldn’t be a constraint. We should take the oppor- tunity to make sure it helps clients and maintainers to understand the purpose of our code.
+Documenting our code shouldn’t be a constraint. We should take the opportunity to make sure it helps clients and maintainers to understand the purpose of our code.
 
 #### Not using linters (#16)
 
 TL;DR: To improve code quality and consistency, use linters and formatters.
 
-A linter is an automatic tool to analyze code and catch errors. The scope of this section isn’t to give an exhaustive list of the existing linters; otherwise, it will become depre- cated pretty quickly. But we should understand and remember why linters are essen- tial for most Go projects.
+A linter is an automatic tool to analyze code and catch errors. The scope of this section isn’t to give an exhaustive list of the existing linters; otherwise, it will become deprecated pretty quickly. But we should understand and remember why linters are essential for most Go projects.
 
 However, if you’re not a regular user of linters, here is a list that you may want to use daily:
 * https://golang.org/cmd/vet/—A standard Go analyzer
