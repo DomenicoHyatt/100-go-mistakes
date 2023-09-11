@@ -1104,6 +1104,83 @@ Accepting a filename as a function input to read from a file should, in most cas
 
 tldr Passing a pointer to a `defer` function and wrapping a call inside a closure are two possible solutions to overcome the immediate evaluation of arguments and receivers.
 
+In a `defer` function the arguments are evaluated right away, not once the surrounding function returns. For example, in this code, we always call `notify` and `incrementCounter` with the same status: an empty string.
+
+```go
+const (
+    StatusSuccess  = "success"
+    StatusErrorFoo = "error_foo"
+    StatusErrorBar = "error_bar"
+)
+
+func f() error {
+    var status string
+    defer notify(status)
+    defer incrementCounter(status)
+
+    if err := foo(); err != nil {
+        status = StatusErrorFoo
+        return err
+    }
+
+    if err := bar(); err != nil {
+        status = StatusErrorBar
+        return err
+    }
+
+    status = StatusSuccess <5>
+    return nil
+}
+```
+
+Indeed, we call `notify(status)` and `incrementCounter(status)` as `defer` functions. Therefore, Go will delay these calls to be executed once `f` returns with the current value of status at the stage we used defer, hence passing an empty string.
+
+Two leading options if we want to keep using `defer`.
+
+The first solution is to pass a string pointer:
+
+```go
+func f() error {
+    var status string
+    defer notify(&status) 
+    defer incrementCounter(&status)
+
+    // The rest of the function unchanged
+    if err := foo(); err != nil {
+        status = StatusErrorFoo
+        return err
+    }
+
+    if err := bar(); err != nil {
+        status = StatusErrorBar
+        return err
+    }
+
+    status = StatusSuccess
+    return nil
+}
+```
+
+Using `defer` evaluates the arguments right away: here, the address of status. Yes, status itself is modified throughout the function, but its address remains constant, regardless of the assignments. Hence, if `notify` or `incrementCounter` uses the value referenced by the string pointer, it will work as expected. But this solution requires changing the signature of the two functions, which may not always be possible.
+
+There’s another solution: calling a closure (an anonymous function value that references variables from outside its body) as a `defer` statement:
+
+```cgo
+func f() error {
+    var status string
+    defer func() {
+        notify(status)
+        incrementCounter(status)
+    }()
+
+    // The rest of the function unchanged
+}
+```
+
+Here, we wrap the calls to both `notify` and `incrementCounter` within a closure. This closure references the status variable from outside its body. Therefore, `status` is evaluated once the closure is executed, not when we call `defer`. This solution also works and doesn’t require `notify` and `incrementCounter` to change their signature.
+
+Let's also note this behavior applies with method receiver: the receiver is evaluated immediately.
+
 [[Source code]](06-functions-methods/47-defer-evaluation/)
 
 ### Error Management
@@ -1112,31 +1189,82 @@ tldr Passing a pointer to a `defer` function and wrapping a call inside a closur
 
 tldr Using `panic` is an option to deal with errors in Go. However, it should only be used sparingly in unrecoverable conditions: for example, to signal a programmer error or when you fail to load a mandatory dependency.
 
+In Go, panic is a built-in function that stops the ordinary flow:
+
+```go
+func main() {
+    fmt.Println("a")
+    panic("foo")
+    fmt.Println("b")
+}
+```
+
+This code prints a and then stops before printing b:
+
+```
+a
+panic: foo
+
+goroutine 1 [running]:
+main.main()
+        main.go:7 +0xb3
+```
+
+Panicking in Go should be used sparingly. There are two prominent cases, one to signal a programmer error (e.g., [`sql.Register`](https://cs.opensource.google/go/go/+/refs/tags/go1.20.7:src/database/sql/sql.go;l=44) that panics if the driver is `nil` or has already been register) and another where our application fails to create a man- datory dependency. Hence, exceptional conditions that lead us to stop the application. In most other cases, error management should be done with a function that returns a proper error type as the last return argument.
+
 [[Source code]](07-error-management/48-panic/main.go)
 
 #### Ignoring when to wrap an error (#49)
 
 tldr Wrapping an error allows you to mark an error and/or provide additional context. However, error wrapping creates potential coupling as it makes the source error available for the caller. If you want to prevent that, don’t use error wrapping.
 
+Since Go 1.13, the %w directive allows us to wrap errors conveniently. Error wrapping is about wrapping or packing an error inside a wrapper container that also makes the source error available. In general, the two main use cases for error wrapping are the following:
+
+* Adding additional context to an error 
+* Marking an error as a specific error
+
+When handling an error, we can decide to wrap it. Wrapping is about adding additional context to an error and/or marking an error as a specific type. If we need to mark an error, we should create a custom error type. However, if we just want to add extra context, we should use fmt.Errorf with the %w directive as it doesn’t require creating a new error type. Yet, error wrapping creates potential coupling as it makes the source error available for the caller. If we want to prevent it, we shouldn’t use error wrapping but error transformation, for example, using fmt.Errorf with the %v directive.
+
 [[Source code]](07-error-management/49-error-wrapping/main.go)
 
 #### Comparing an error type inaccurately (#50)
 
-tldr If you use Go 1.13 error wrapping with the `%w` directive and `fmt.Errorf`, comparing an error against a type or a value has to be done using `errors.As` or `errors.Is`, respectively. Otherwise, if the returned error you want to check is wrapped, it will fail the checks.
+tldr If you use Go 1.13 error wrapping with the `%w` directive and `fmt.Errorf`, comparing an error against a type has to be done using `errors.As`. Otherwise, if the returned error you want to check is wrapped, it will fail the checks.
+
+TODO
+
+if we rely on Go 1.13 error wrapping, we must use `errors.As` to check whether an error is a specific type. This way, regardless of whether the error is returned directly by the function we call or wrapped inside an error, `errors.As` will be able to recursively unwrap our main error and see if one of the errors is a specific type.
 
 [[Source code]](07-error-management/50-compare-error-type/main.go)
 
 #### Comparing an error value inaccurately (#51)
 
-tldr See [#50](#comparing-an-error-type-inaccurately-50).
+tldr If you use Go 1.13 error wrapping with the `%w` directive and `fmt.Errorf`, comparing an error against or a value has to be done using `errors.As`. Otherwise, if the returned error you want to check is wrapped, it will fail the checks.
 
-To convey an expected error, use error sentinels (error values). An unexpected error should be a specific error type.
+A sentinel error is an error defined as a global variable:
+
+```cgo
+import "errors"
+
+var ErrFoo = errors.New("foo")
+```
+
+In general, the convention is to start with `Err` followed by the error type: here, `ErrFoo`. A sentinel error conveys an _expected_ error, an error that clients will expect to check. As general guidelines:
+
+* Expected errors should be designed as error values (sentinel errors): `var ErrFoo = errors.New("foo")`.
+* Unexpected errors should be designed as error types: `type BarError struct { ... }`, with `BarError` implementing the `error` interface.
+
+If we use error wrapping in our application with the `%w` directive and `fmt.Errorf`, checking an error against a specific value should be done using `errors.Is` instead of `==`. Thus, even if the sentinel error is wrapped, `errors.Is` can recursively unwrap it and compare each error in the chain against the provided value.
 
 [[Source code]](07-error-management/51-comparing-error-value/main.go)
 
 #### Handling an error twice (#52)
 
 tldr In most situations, an error should be handled only once. Logging an error is handling an error. Therefore, you have to choose between logging or returning an error. In many cases, error wrapping is the solution as it allows you to provide additional context to an error and return the source error.
+
+Handling an error multiple times is a mistake made frequently by developers, not spe- cifically in Go. This can cause situations where the same error is logged multiple times make debugging harder.
+
+Let's reming us that handling an error should be done only once. Logging an error is handling an error. Hence, we should either log or return an error. By doing this, we simplify our code and gain better insights into the error situation. Using error wrap- ping is the most convenient approach as it allows us to propagate the source error and add context to an error.
 
 [[Source code]](07-error-management/52-handling-error-twice/main.go)
 
@@ -1149,6 +1277,35 @@ tldr Ignoring an error, whether during a function call or in a `defer` function,
 #### Not handling `defer` errors (#54)
 
 tldr In many cases, you shouldn’t ignore an error returned by a `defer` function. Either handle it directly or propagate it to the caller, depending on the context. If you want to ignore it, use the blank identifier.
+
+Consider the following code:
+
+```go
+func f() {
+  // ...
+  notify() // Error handling is omitted
+}
+
+func notify() error {
+  // ...
+}
+```
+
+From a maintainability perspective, the code can lead to some issues. Let’s consider a new reader looking at it. This reader notices that notify returns an error but that the error isn’t handled by the parent function. How can they guess whether or not handling the error was intentional? How can they know whether the previous developer forgot to handle it or did it purposely?
+
+For these reasons, when we want to ignore an error, there's only one way to do it, using the blank identifier (`_`):
+
+```go
+_ = notify
+```
+
+In terms of compilation and run time, this approach doesn’t change anything compared to the first piece of code. But this new version makes explicit that we aren’t interested in the error. Also, we can add a comment that indicates the rationale for why an error is ignored:
+
+```go
+// At-most once delivery.
+// Hence, it's accepted to miss some of them in case of errors.
+_ = notify()
+```
 
 [[Source code]](07-error-management/54-defer-errors/main.go)
 
